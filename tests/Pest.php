@@ -4,6 +4,7 @@ use App\Ai\Config\AiAgentProfile;
 use App\Ai\Providers\ProviderName;
 use App\Domain\Assignments\Models\Assignment;
 use App\Domain\Candidates\Models\Candidate;
+use App\Domain\Documents\Contracts\PdfConverter;
 use App\Enums\Role;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
@@ -183,3 +184,59 @@ function assessmentJson(array $verdicts = ['E1' => 'voldoet', 'W1' => 'voldoet']
         'toelichting' => 'Past goed bij de opdracht.',
     ]);
 }
+
+/**
+ * Getailord CV zoals de CV-tailor het teruggeeft: het master-profiel uit de fixture plus de
+ * sectie "Aansluiting op de opdracht".
+ *
+ * @param  array<string, mixed>  $overrides
+ */
+function tailoredCvJson(string $fixture = 'senior-developer', array $overrides = []): string
+{
+    $profile = json_decode((string) file_get_contents(__DIR__."/Fixtures/profiles/{$fixture}.json"), true);
+    $profile['naam'] = 'De kandidaat';
+
+    return (string) json_encode([
+        ...$profile,
+        'aansluiting_op_opdracht' => [['eis_id' => 'E1', 'eis' => 'Laravel', 'invulling' => 'Werkt sinds 2021 als senior developer met Laravel.']],
+        'changes' => [['sectie' => 'profieltekst', 'wijziging' => 'Gericht op de opdracht']],
+        ...$overrides,
+    ]);
+}
+
+function groundingJson(array $claims = []): string
+{
+    return (string) json_encode(['unsupported_claims' => $claims]);
+}
+
+function mailWriterJson(): string
+{
+    return (string) json_encode([
+        'intro' => 'Naar aanleiding van uw aanvraag bieden wij graag onze kandidaat aan.',
+        'bullets' => ['Ruim tien jaar ervaring met PHP en Laravel.', 'Ervaring met PostgreSQL en Docker.', 'Werkt met Pest en CI/CD.'],
+        'eis_antwoorden' => [['id' => 'E1', 'antwoord' => 'Sinds 2015 werkzaam met Laravel.']],
+    ]);
+}
+
+/**
+ * Een PDF-converter die zonder Word of Gotenberg een klein PDF-bestand schrijft.
+ */
+function fakePdfConverter(): void
+{
+    app()->instance(PdfConverter::class, new class implements PdfConverter
+    {
+        public function convert(string $docxPath, string $pdfPath): string
+        {
+            file_put_contents($pdfPath, "%PDF-1.4\n% test\n");
+
+            return $pdfPath;
+        }
+
+        public function isAvailable(): bool
+        {
+            return true;
+        }
+    });
+}
+
+require_once __DIR__.'/Support/offers.php';

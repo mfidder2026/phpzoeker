@@ -23,6 +23,7 @@ class AssignmentInfolist
         return $schema->components([
             Tabs::make('Opdracht')->columnSpanFull()->persistTabInQueryString()->tabs([
                 Tab::make('Samenvatting')->icon('heroicon-o-document-text')->schema([
+                    ViewEntry::make('offers')->hiddenLabel()->columnSpanFull()->view('filament.assignments.offers'),
                     TextEntry::make('warnings')->hiddenLabel()->columnSpanFull()
                         ->state(fn (Assignment $record): array => array_values(array_filter([
                             ! $record->is_relevant ? 'Niet relevant: '.$record->relevance_reason : null,

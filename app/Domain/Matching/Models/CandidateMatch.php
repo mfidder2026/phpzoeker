@@ -8,10 +8,12 @@ use App\Domain\Matching\Enums\AssessmentStatus;
 use App\Domain\Matching\Enums\MatchLabel;
 use App\Domain\Matching\Enums\MatchStatus;
 use App\Domain\Matching\Enums\Recommendation;
+use App\Domain\Offers\Models\Offer;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
@@ -122,6 +124,14 @@ class CandidateMatch extends Model
     public function candidate(): BelongsTo
     {
         return $this->belongsTo(Candidate::class);
+    }
+
+    /**
+     * @return HasMany<Offer, $this>
+     */
+    public function offers(): HasMany
+    {
+        return $this->hasMany(Offer::class, 'match_id');
     }
 
     /**

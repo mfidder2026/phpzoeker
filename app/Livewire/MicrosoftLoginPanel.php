@@ -2,21 +2,29 @@
 
 namespace App\Livewire;
 
+use App\Domain\Offers\Mailers\SenderConnection;
+use App\Domain\Sources\Mailbox\MicrosoftConnection;
 use App\Domain\Sources\Mailbox\MicrosoftLogin;
+use App\Domain\Sources\Mailbox\SourceConnection;
 use App\Domain\Sources\Models\Source;
 use App\Filament\Support\Access;
+use App\Settings\MailSettings;
 use Filament\Notifications\Notification;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 use Throwable;
 
 /**
- * Inlogvenster voor de Microsoft 365-mailbox: toont de code en de knop naar de inlogpagina van
- * Microsoft, en controleert zelf of het inloggen gelukt is.
+ * Inlogvenster voor Microsoft 365: toont de code en de knop naar de inlogpagina van Microsoft,
+ * en controleert zelf of het inloggen gelukt is. Voor een mailbox-bron (lezen) of voor de
+ * afzendermailbox (versturen).
  */
 class MicrosoftLoginPanel extends Component
 {
-    public int $sourceId;
+    public ?int $sourceId = null;
+
+    /** source | sender */
+    public string $target = 'source';
 
     /** idle | waiting | connected | expired | error */
     public string $state = 'idle';
@@ -27,18 +35,19 @@ class MicrosoftLoginPanel extends Component
 
     public ?string $message = null;
 
-    public function mount(int $sourceId): void
+    public function mount(?int $sourceId = null, string $target = 'source'): void
     {
         abort_unless(Access::isBeheerder(), 403);
 
         $this->sourceId = $sourceId;
+        $this->target = $target === 'sender' ? 'sender' : 'source';
         $this->start();
     }
 
     public function start(): void
     {
         try {
-            $result = app(MicrosoftLogin::class)->start($this->source());
+            $result = app(MicrosoftLogin::class)->start($this->connection());
             $this->userCode = $result['user_code'];
             $this->verificationUri = $result['verification_uri'];
             $this->state = 'waiting';
@@ -56,7 +65,7 @@ class MicrosoftLoginPanel extends Component
         }
 
         try {
-            $status = app(MicrosoftLogin::class)->poll($this->source());
+            $status = app(MicrosoftLogin::class)->poll($this->connection());
         } catch (Throwable $exception) {
             $this->state = 'error';
             $this->message = $exception->getMessage();
@@ -66,7 +75,7 @@ class MicrosoftLoginPanel extends Component
 
         if ($status === 'connected') {
             $this->state = 'connected';
-            $account = (string) ($this->source()->refresh()->config['connected_account'] ?? '');
+            $account = (string) $this->connection()->account();
 
             Notification::make()->success()->title('Verbonden met Microsoft 365')
                 ->body($account !== '' ? 'Ingelogd als '.$account.'.' : null)->send();
@@ -77,15 +86,22 @@ class MicrosoftLoginPanel extends Component
         }
     }
 
-    private function source(): Source
+    private function connection(): MicrosoftConnection
     {
-        return Source::query()->findOrFail($this->sourceId);
+        if ($this->target === 'sender') {
+            app()->forgetInstance(MailSettings::class);
+
+            return new SenderConnection(app(MailSettings::class));
+        }
+
+        return new SourceConnection(Source::query()->findOrFail($this->sourceId));
     }
 
     public function render(): View
     {
         return view('livewire.microsoft-login-panel', [
-            'mailbox' => (string) ($this->source()->config['mailbox'] ?? ''),
+            'mailbox' => $this->connection()->mailbox(),
+            'sending' => $this->target === 'sender',
         ]);
     }
 }

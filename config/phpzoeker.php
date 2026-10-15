@@ -50,6 +50,9 @@ return [
 
     'gotenberg_url' => env('GOTENBERG_URL', 'http://localhost:3000'),
 
+    // PDF van het CV: gotenberg (Docker/productie), word (Windows met Microsoft Word) of auto.
+    'pdf_converter' => env('PDF_CONVERTER', 'auto'),
+
     'pdok_url' => env('PDOK_LOCATIESERVER_URL', 'https://api.pdok.nl/bzk/locatieserver/search/v3_1'),
 
     'user_agent' => 'PHPZoeker/1.0 (+mailto:'.env('ADMIN_EMAIL', 'michel@fremen.app').')',

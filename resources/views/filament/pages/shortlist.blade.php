@@ -56,10 +56,24 @@
             </section>
         @endforeach
 
-        @foreach ($later as $label)
-            <section class="pz-kanban__col pz-kanban__col--later" aria-label="{{ $label }}">
-                <div class="pz-kanban__head"><span>{{ $label }}</span></div>
-                <p class="pz-empty">Volgt in fase 4 (aanbiedingen).</p>
+        @foreach ($offerColumns as $label => $offers)
+            <section class="pz-kanban__col" aria-label="{{ $label }}">
+                <div class="pz-kanban__head"><span>{{ $label }}</span><span class="pz-chip">{{ $offers->count() }}</span></div>
+                @forelse ($offers as $offer)
+                    <article class="pz-kanban__card" wire:key="offer-{{ $offer->id }}">
+                        <a href="{{ $offerUrl($offer) }}">{{ $offer->assignment->title }}</a>
+                        <div class="pz-person__meta">{{ $offer->candidate->name }} · via {{ $offer->viaName() }}</div>
+                        <div class="pz-kanban__card-foot">
+                            <span class="pz-chip">{{ $offer->status->getLabel() }}</span>
+                            @php($indicator = \App\Domain\Offers\Support\ResponseTerm::indicator($offer))
+                            @if ($indicator['state'] !== 'none')
+                                <span @class(['pz-chip', 'pz-chip--danger' => $indicator['state'] === 'late', 'pz-chip--warning' => $indicator['state'] === 'today'])>{{ $indicator['label'] }}</span>
+                            @endif
+                        </div>
+                    </article>
+                @empty
+                    <p class="pz-empty">Leeg</p>
+                @endforelse
             </section>
         @endforeach
     </div>

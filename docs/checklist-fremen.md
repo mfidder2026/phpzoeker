@@ -24,7 +24,6 @@ De app leest het gedeelde postvak **aanvragen@fremen.app** (Microsoft 365). Stap
 
 ## Mail versturen
 - [ ] Afzendermailbox kiezen (`michel@fremen.app` of `sales@fremen.app`) en de handtekening invullen in **Instellingen → Mail**.
-- [ ] Bij Microsoft 365: app-registratie met `Mail.Send` (+ `Mail.ReadWrite`) beperkt tot de afzendermailbox.
 
 ## Bronnen
 - [ ] Bronnenrapport (`docs/bronnen.md`) reviewen en per bron een besluit nemen (go/no-go + methode).
@@ -35,3 +34,12 @@ De app leest het gedeelde postvak **aanvragen@fremen.app** (Microsoft 365). Stap
 - [ ] **Instellingen → Matching**: gewichten, drempels en technologie-aliassen nalopen.
 - [ ] Prijzen per 1 mln. tokens invullen in **Instellingen → AI-agent**, anders werkt de budgetbewaking met € 0.
 - [ ] De eerste weken matches beoordelen met 👍/👎; daarmee worden de gewichten bijgesteld.
+
+## Aanbieden (fase 4)
+- [ ] **OverheidZZP**: samenvatting van robots.txt en voorwaarden staat in `docs/bronnen.md`. Besluit nemen en in **Bronnen → OverheidZZP** de ToS-check invullen en de bron aanzetten.
+- [ ] **Verzenden via Microsoft 365**: Instellingen → Mail → mailprovider *Microsoft 365*, afzendermailbox invullen, **Inloggen bij Microsoft** en **Testmail sturen** (zie `docs/m365-aanvragen-mailbox.md`).
+- [ ] **Instellingen → Mail**: afzendermailbox, naam en handtekening (HTML en tekst) invullen; standaard-CC controleren (nu mark@fremen.app en michel@fremen.app).
+- [ ] **Instellingen → CV**: Fremen-contact (naam, e-mail, telefoon) voor de contactregel in het CV.
+- [ ] **Relaties**: website en standaard reactietermijn per vaste intermediair (bijv. HeadFirst) invullen.
+- [ ] Akkoord geven op een bibliotheek voor Outlook-**.msg** (nu alleen .eml).
+- [ ] De eerste aanbieding samen doorlopen: CV-review, grounding-rapport en mail controleren vóór verzending.

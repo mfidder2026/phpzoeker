@@ -17,9 +17,10 @@ use Filament\Schemas\Components\Tabs\Tab;
 class MasterProfileEditor
 {
     /**
+     * @param  list<Tab>  $extraTabs  extra tabbladen, bijv. "Aansluiting op de opdracht" bij een getailord CV
      * @return list<Tabs>
      */
-    public static function components(): array
+    public static function components(array $extraTabs = []): array
     {
         $period = '/^\d{4}(-\d{2})?$/';
 
@@ -114,6 +115,7 @@ class MasterProfileEditor
                     ]),
                     TextInput::make('data.voetregel')->label('Slotregel onderaan het CV'),
                 ]),
+                ...$extraTabs,
             ]),
         ];
     }

@@ -4,6 +4,8 @@ use App\Domain\Assignments\Jobs\CloseExpiredAssignmentsJob;
 use App\Domain\Matching\Jobs\DailyDigestJob;
 use App\Domain\Matching\Jobs\DeadlineReminderJob;
 use App\Domain\Matching\Jobs\RematchAllJob;
+use App\Domain\Offers\Jobs\ComputeResponseStatsJob;
+use App\Domain\Offers\Jobs\ResponseDueJob;
 use App\Domain\Sources\Jobs\DispatchDueSourcesJob;
 use App\Domain\Sources\Jobs\SourceHealthCheckJob;
 use App\Settings\NotificationSettings;
@@ -34,3 +36,5 @@ Schedule::job(new SourceHealthCheckJob)->dailyAt('07:00')->timezone($timezone)->
 Schedule::job(new RematchAllJob)->dailyAt('02:00')->timezone($timezone)->name('matches-herberekenen');
 Schedule::job(new DeadlineReminderJob)->hourly()->name('deadline-herinneringen');
 Schedule::job(new DailyDigestJob)->weekdays()->dailyAt(preg_match('/^\d{2}:\d{2}$/', $digestTime) ? $digestTime : '08:00')->timezone($timezone)->name('dagelijkse-digest');
+Schedule::job(new ResponseDueJob)->hourly()->weekdays()->timezone($timezone)->name('reacties-verlopen');
+Schedule::job(new ComputeResponseStatsJob)->dailyAt('02:30')->timezone($timezone)->name('reactietijden-berekenen');

@@ -23,8 +23,8 @@
             </div>
             <div class="pz-tile">
                 <div class="pz-tile__label">Aanbiedingen deze week</div>
-                <div class="pz-tile__value pz-tile__value--muted">—</div>
-                <div class="pz-tile__sub">Volgt in fase 4</div>
+                <div @class(['pz-tile__value', 'pz-tile__value--muted' => $offersThisWeek === 0])>{{ $offersThisWeek }}</div>
+                <div class="pz-tile__sub">{{ $overdueOffers->count() }} {{ $overdueOffers->count() === 1 ? 'reactie verlopen' : 'reacties verlopen' }}</div>
             </div>
             <div class="pz-tile">
                 <div class="pz-tile__label">AI-kosten vandaag</div>
@@ -64,6 +64,16 @@
                             </div>
                         </div>
                     @endif
+                @endforeach
+                @foreach ($overdueOffers as $offer)
+                    <div class="pz-person">
+                        <span class="pz-chip pz-chip--danger">{{ \App\Domain\Offers\Support\ResponseTerm::indicator($offer)['label'] }}</span>
+                        <div>
+                            <div class="pz-person__name">Reactie verlopen: {{ $offer->assignment->title }}</div>
+                            <div class="pz-person__meta">{{ $offer->candidate->name }} · via {{ $offer->viaName() }}</div>
+                        </div>
+                        <div class="pz-person__aside"><x-filament::button tag="a" size="sm" color="gray" :href="$offerUrl($offer)">Opvolgen</x-filament::button></div>
+                    </div>
                 @endforeach
                 @foreach ($shortlistSoon as $match)
                     <div class="pz-person">
@@ -107,7 +117,6 @@
                     </div>
                 @endforeach
                 @endif
-                <p class="pz-empty">Reacties op aanbiedingen verschijnen hier vanaf fase 4.</p>
             </div>
 
             <div class="pz-card">

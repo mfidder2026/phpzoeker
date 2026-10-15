@@ -14,11 +14,15 @@
         </x-filament::button>
         <p class="pz-person__meta" style="margin-top:1rem">
             De code staat ook op je klembord. Dit venster ziet vanzelf wanneer je klaar bent.<br>
-            Microsoft vraagt toestemming om mail te lezen en te markeren in mailboxen waar jij toegang toe hebt; PHP Zoeker gebruikt alleen {{ $mailbox ?: 'de ingestelde mailbox' }}.
+            @if ($sending ?? false)
+                Microsoft vraagt toestemming om mail te versturen (ook namens een gedeelde mailbox waar jij rechten op hebt). PHP Zoeker verstuurt alleen mails die een mens heeft goedgekeurd, vanuit {{ $mailbox ?: 'de ingestelde afzendermailbox' }}.
+            @else
+                Microsoft vraagt toestemming om mail te lezen en te markeren in mailboxen waar jij toegang toe hebt; PHP Zoeker gebruikt alleen {{ $mailbox ?: 'de ingestelde mailbox' }}.
+            @endif
         </p>
         <div class="pz-bar pz-bar--indeterminate" style="max-width:240px;margin:1rem auto 0"><div class="pz-bar__fill"></div></div>
     @elseif ($state === 'connected')
-        <div class="pz-alert pz-alert--success">✓ Verbonden. Je kunt dit venster sluiten en daarna "Test run" gebruiken.</div>
+        <div class="pz-alert pz-alert--success">✓ Verbonden. Je kunt dit venster sluiten en daarna {{ ($sending ?? false) ? '"Testmail sturen"' : '"Test run"' }} gebruiken.</div>
     @elseif ($state === 'expired')
         <div class="pz-alert pz-alert--danger">De code is verlopen.</div>
         <x-filament::button wire:click="start" style="margin-top:.8rem">Nieuwe code</x-filament::button>

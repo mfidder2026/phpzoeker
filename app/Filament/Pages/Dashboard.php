@@ -9,10 +9,12 @@ use App\Domain\Candidates\Models\Candidate;
 use App\Domain\Matching\Enums\MatchLabel;
 use App\Domain\Matching\Enums\MatchStatus;
 use App\Domain\Matching\Models\CandidateMatch;
+use App\Domain\Offers\Models\Offer;
 use App\Domain\Sources\Models\Source;
 use App\Filament\Resources\Assignments\AssignmentResource;
 use App\Filament\Resources\Candidates\CandidateResource;
 use App\Filament\Resources\Matches\MatchResource;
+use App\Filament\Resources\Offers\OfferResource;
 use App\Filament\Support\Access;
 use BackedEnum;
 use Filament\Pages\Dashboard as BaseDashboard;
@@ -20,8 +22,8 @@ use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Collection;
 
 /**
- * Startpagina (§15.5): sterke matches, deadlines, bronstatus en AI-kosten. Aanbiedingen en
- * reacties volgen in fase 4.
+ * Startpagina (§15.5): sterke matches, deadlines, aanbiedingen, reacties verlopen, bronstatus
+ * en AI-kosten.
  */
 class Dashboard extends BaseDashboard
 {
@@ -86,6 +88,9 @@ class Dashboard extends BaseDashboard
             'strongOpen' => $matches()->where('label', MatchLabel::Sterk->value)->whereIn('status', [MatchStatus::Nieuw->value, MatchStatus::Bekeken->value])->orderByDesc('score')->limit(8)->get(),
             'shortlistSoon' => $matches()->where('status', MatchStatus::Shortlist->value)
                 ->whereHas('assignment', fn ($query) => $query->whereBetween('deadline_at', [now(), now()->addDay()]))->get(),
+            'offersThisWeek' => Offer::query()->sent()->where('sent_at', '>=', now()->startOfWeek())->when($user?->isKandidaat(), fn ($query) => $query->where('candidate_id', $user?->candidate_id))->count(),
+            'overdueOffers' => $user?->isStaff() ? Offer::query()->overdue()->with(['candidate', 'assignment', 'organization', 'assignmentSource'])->orderBy('expected_response_at')->limit(8)->get() : collect(),
+            'offerUrl' => fn (Offer $offer): string => OfferResource::getUrl('view', ['record' => $offer]),
             'matchUrl' => fn (CandidateMatch $match): string => MatchResource::getUrl('view', ['record' => $match]),
             'assignmentUrl' => fn (Assignment $assignment): string => AssignmentResource::getUrl('view', ['record' => $assignment]),
         ];

@@ -13,11 +13,20 @@ use App\Domain\Candidates\Models\Candidate;
 use App\Domain\Candidates\Models\CandidateProfile;
 use App\Domain\Documents\Contracts\PdfConverter;
 use App\Domain\Documents\GotenbergPdfConverter;
+use App\Domain\Documents\WordPdfConverter;
 use App\Domain\Geo\Geocoder;
 use App\Domain\Geo\PdokGeocoder;
 use App\Domain\Matching\Listeners\MatchIngestedAssignment;
 use App\Domain\Matching\Listeners\RematchChangedCandidate;
 use App\Domain\Matching\Models\CandidateMatch;
+use App\Domain\Offers\Mailers\MicrosoftGraphMailer;
+use App\Domain\Offers\Mailers\OutboundMailer;
+use App\Domain\Offers\Mailers\SmtpOutboundMailer;
+use App\Domain\Offers\Models\Offer;
+use App\Domain\Offers\Models\OfferSnapshot;
+use App\Domain\Offers\Models\OutboundEmail;
+use App\Domain\Offers\Models\TailoredCv;
+use App\Domain\Relations\Models\Contact;
 use App\Domain\Relations\Models\Organization;
 use App\Domain\Sources\Mailbox\ImapMailboxClient;
 use App\Domain\Sources\Mailbox\MailboxClient;
@@ -34,8 +43,11 @@ use App\Policies\AssignmentPolicy;
 use App\Policies\CandidatePolicy;
 use App\Policies\CandidateProfilePolicy;
 use App\Policies\MatchPolicy;
+use App\Policies\OfferPolicy;
+use App\Policies\OrganizationPolicy;
 use App\Policies\SourcePolicy;
 use App\Policies\UserPolicy;
+use App\Settings\MailSettings;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Foundation\DevCommands;
 use Illuminate\Support\Carbon;
@@ -54,8 +66,21 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(AiProviderFactory::class);
         $this->app->bind(MailboxClient::class, ImapMailboxClient::class);
+        // Uitgaande aanbiedingsmail (§13.2): Microsoft 365 (Graph) of SMTP, volgens Instellingen → Mail.
+        $this->app->bind(OutboundMailer::class, fn (): OutboundMailer => app(MailSettings::class)->provider === 'graph'
+            ? app(MicrosoftGraphMailer::class)
+            : app(SmtpOutboundMailer::class));
         $this->app->bind(Geocoder::class, fn (): Geocoder => new PdokGeocoder((string) config('phpzoeker.pdok_url')));
-        $this->app->bind(PdfConverter::class, fn (): PdfConverter => new GotenbergPdfConverter((string) config('phpzoeker.gotenberg_url')));
+        $this->app->bind(PdfConverter::class, function (): PdfConverter {
+            $gotenberg = new GotenbergPdfConverter((string) config('phpzoeker.gotenberg_url'));
+
+            return match (config('phpzoeker.pdf_converter')) {
+                'word' => new WordPdfConverter,
+                'gotenberg' => $gotenberg,
+                // auto: Word op een Windows-machine zonder Docker (D3), anders Gotenberg.
+                default => PHP_OS_FAMILY === 'Windows' ? new WordPdfConverter : $gotenberg,
+            };
+        });
     }
 
     /**
@@ -79,6 +104,11 @@ class AppServiceProvider extends ServiceProvider
             'assignment' => Assignment::class,
             'organization' => Organization::class,
             'match' => CandidateMatch::class,
+            'offer' => Offer::class,
+            'tailored_cv' => TailoredCv::class,
+            'outbound_email' => OutboundEmail::class,
+            'offer_snapshot' => OfferSnapshot::class,
+            'contact' => Contact::class,
         ]);
 
         Gate::policy(Candidate::class, CandidatePolicy::class);
@@ -90,6 +120,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Assignment::class, AssignmentPolicy::class);
         Gate::policy(Source::class, SourcePolicy::class);
         Gate::policy(CandidateMatch::class, MatchPolicy::class);
+        Gate::policy(Offer::class, OfferPolicy::class);
+        Gate::policy(Organization::class, OrganizationPolicy::class);
 
         Event::listen(AssignmentIngested::class, MatchIngestedAssignment::class);
         Event::listen(CandidateValuesChanged::class, RematchChangedCandidate::class);
