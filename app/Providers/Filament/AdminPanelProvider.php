@@ -71,6 +71,7 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(PanelsRenderHook::HEAD_END, fn (): string => '<link rel="stylesheet" href="'.asset('css/phpzoeker.css').'?v='.filemtime(public_path('css/phpzoeker.css')).'">')
             ->renderHook(PanelsRenderHook::GLOBAL_SEARCH_AFTER, fn (): string => Blade::render('@livewire(\'ai-gauge\')'))
             ->renderHook(PanelsRenderHook::SIDEBAR_FOOTER, fn (): string => Blade::render('@livewire(\'ai-gauge\', [\'compact\' => true])'))
+            ->renderHook(PanelsRenderHook::AUTH_LOGIN_FORM_AFTER, fn (): string => Blade::render("@livewire('microsoft-sign-in-panel')"))
             ->renderHook(PanelsRenderHook::BODY_END, fn (): string => Blade::render('@livewire(\'ai-run-progress-panel\')'))
             ->middleware([
                 EncryptCookies::class,

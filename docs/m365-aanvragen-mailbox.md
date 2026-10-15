@@ -1,5 +1,10 @@
 # Koppeling met aanvragen@fremen.app (Microsoft 365)
 
+> **Kortste route:** klik op de inlogpagina van PHP Zoeker op **Inloggen met Microsoft** en log in met je Fremen-account
+> (als beheerder). Dezelfde inlog koppelt dan ook verzenden via Microsoft 365 en de aanvragen-mailbox, als die nog niet
+> gekoppeld waren. Daarna alleen nog: bij de bron de ToS-datum invullen en de bron aanzetten, en een testmail sturen
+> via Instellingen → Mail. De stappen hieronder zijn voor als je ze los wilt koppelen.
+
 PHP Zoeker leest het gedeelde postvak **aanvragen@fremen.app**. Elke nieuwe mail wordt een opdracht. Een job alert
 met meerdere opdrachten wordt opgesplitst, en een mail van een @fremen.app-adres geldt als doorgestuurde aanvraag.
 

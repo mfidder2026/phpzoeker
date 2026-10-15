@@ -37,7 +37,7 @@ De app leest het gedeelde postvak **aanvragen@fremen.app** (Microsoft 365). Stap
 
 ## Aanbieden (fase 4)
 - [ ] **OverheidZZP**: samenvatting van robots.txt en voorwaarden staat in `docs/bronnen.md`. Besluit nemen en in **Bronnen → OverheidZZP** de ToS-check invullen en de bron aanzetten.
-- [ ] **Verzenden via Microsoft 365**: Instellingen → Mail → mailprovider *Microsoft 365*, afzendermailbox invullen, **Inloggen bij Microsoft** en **Testmail sturen** (zie `docs/m365-aanvragen-mailbox.md`).
+- [ ] **Inloggen met Microsoft** op de inlogpagina (als beheerder): koppelt verzenden en de aanvragen-mailbox in één keer. Daarna **Testmail sturen** in Instellingen → Mail en de afzendermailbox controleren.
 - [ ] **Instellingen → Mail**: afzendermailbox, naam en handtekening (HTML en tekst) invullen; standaard-CC controleren (nu mark@fremen.app en michel@fremen.app).
 - [ ] **Instellingen → CV**: Fremen-contact (naam, e-mail, telefoon) voor de contactregel in het CV.
 - [ ] **Relaties**: website en standaard reactietermijn per vaste intermediair (bijv. HeadFirst) invullen.

@@ -247,3 +247,9 @@ html:not(.dark) .fi-main-ctn {
 .pz-weekchart__col span { font-size: .65rem; color: var(--pz-muted); margin-top: .2rem; }
 .pz-legend { display: flex; flex-wrap: wrap; gap: .4rem 1rem; margin-top: .6rem; font-size: .78rem; color: var(--pz-muted); }
 .pz-legend i { display: inline-block; width: .7rem; height: .7rem; border-radius: 2px; margin-right: .3rem; vertical-align: middle; }
+
+/* ---------- Inloggen met Microsoft ---------- */
+.pz-signin { margin-top: 1rem; }
+.pz-signin__divider { display: flex; align-items: center; gap: .6rem; color: var(--pz-muted); font-size: .8rem; margin-bottom: .8rem; }
+.pz-signin__divider::before, .pz-signin__divider::after { content: ""; flex: 1; border-top: 1px solid var(--pz-border); }
+.pz-signin__code { font-size: 1.8rem; font-weight: 700; letter-spacing: .2em; font-family: ui-monospace, monospace; color: var(--pz-primary); text-align: center; margin: .4rem 0 .8rem; cursor: pointer; }

@@ -20,6 +20,9 @@ class GeneralSettings extends Settings
      */
     public array $countries;
 
+    /** Tenant-ID van Microsoft 365 waaruit ingelogd mag worden (gezet bij de eerste inlog van een beheerder). */
+    public ?string $microsoft_tenant_id;
+
     public static function group(): string
     {
         return 'general';

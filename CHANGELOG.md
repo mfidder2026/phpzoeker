@@ -3,6 +3,7 @@
 ## [Fase 5 — rapportage en verbeteren] — 15-10-2026
 
 ### Toegevoegd
+- **Inloggen met Microsoft** op de inlogpagina; bij een beheerder koppelt dezelfde inlog ook verzenden via Microsoft 365 en de aanvragen-mailbox.
 - **Reply-tracking**: reacties op aanbiedingsmails worden elke 15 minuten in de afzendermailbox (Microsoft 365) gevonden, komen in de tijdlijn met afzender en fragment, tellen mee voor de reactietijd en geven een melding; het register stelt de statuswijziging voor.
 - **Rapportages**: funnel (match → shortlist → aangeboden → reactie → intake → geplaatst), doorlooptijden, matches per kandidaat met feedback, nieuwe opdrachten per bron per week, AI-kosten per dag en per agent, en **gemiste kansen** (aangeboden terwijl de app laag scoorde).
 - **Gewichtsvoorstel** op basis van 👍/👎 in Instellingen → Matching, met "Voorstel overnemen" (herberekent alle scores zonder AI).
@@ -11,7 +12,7 @@
 - **Dagelijkse AI-verbindingstest** (06:45) met melding; **bewaartermijnen** elke nacht (03:00).
 - **Teams-meldingen** via een Workflows-webhook.
 - **Engelse CV-koppen** voor Engelstalige opdrachten.
-- 11 nieuwe tests (233 totaal).
+- 17 nieuwe tests (239 totaal).
 
 ### Gewijzigd
 - Werkdagen tussen twee momenten worden in Europe/Amsterdam geteld (een tijdstip in UTC telde soms een dag te veel).
