@@ -24,7 +24,6 @@ De app leest het gedeelde postvak **aanvragen@fremen.app** (Microsoft 365). Stap
 
 ## Mail versturen
 - [ ] Afzendermailbox kiezen (`michel@fremen.app` of `sales@fremen.app`) en de handtekening invullen in **Instellingen → Mail**.
-- [ ] Bij Microsoft 365: app-registratie met `Mail.Send` (+ `Mail.ReadWrite`) beperkt tot de afzendermailbox.
 
 ## Bronnen
 - [ ] Bronnenrapport (`docs/bronnen.md`) reviewen en per bron een besluit nemen (go/no-go + methode).
