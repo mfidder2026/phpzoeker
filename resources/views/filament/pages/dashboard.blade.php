@@ -13,13 +13,13 @@
         <div class="pz-tiles">
             <div class="pz-tile">
                 <div class="pz-tile__label">Sterke matches vandaag</div>
-                <div class="pz-tile__value pz-tile__value--muted">—</div>
-                <div class="pz-tile__sub">Volgt in fase 3</div>
+                <div @class(['pz-tile__value', 'pz-tile__value--muted' => $strongToday === 0])>{{ $strongToday }}</div>
+                <div class="pz-tile__sub">{{ $strongOpen->count() }} nog niet ingedeeld</div>
             </div>
             <div class="pz-tile">
                 <div class="pz-tile__label">Deadline binnen 24 uur</div>
-                <div @class(['pz-tile__value', 'pz-tile__value--muted' => $deadlineSoon->isEmpty()])>{{ $deadlineSoon->count() }}</div>
-                <div class="pz-tile__sub">Open opdrachten (shortlist volgt in fase 3)</div>
+                <div @class(['pz-tile__value', 'pz-tile__value--muted' => $shortlistSoon->isEmpty()])>{{ $shortlistSoon->count() }}</div>
+                <div class="pz-tile__sub">Op de shortlist · {{ $deadlineSoon->count() }} open opdrachten in totaal</div>
             </div>
             <div class="pz-tile">
                 <div class="pz-tile__label">Aanbiedingen deze week</div>
@@ -65,6 +65,27 @@
                         </div>
                     @endif
                 @endforeach
+                @foreach ($shortlistSoon as $match)
+                    <div class="pz-person">
+                        <span class="pz-chip pz-chip--danger">Deadline {{ $match->assignment->deadline_at->isToday() ? 'vandaag' : 'morgen' }} {{ $match->assignment->deadline_at->format('H:i') }}</span>
+                        <div>
+                            <div class="pz-person__name">{{ $match->assignment->title }}</div>
+                            <div class="pz-person__meta">Shortlist · {{ $match->candidate->name }} · nog niet aangeboden</div>
+                        </div>
+                        <div class="pz-person__aside"><x-filament::button tag="a" size="sm" color="gray" :href="$matchUrl($match)">Bekijken</x-filament::button></div>
+                    </div>
+                @endforeach
+                @foreach ($strongOpen as $match)
+                    <div class="pz-person">
+                        <span class="pz-chip pz-chip--success">Sterke match {{ $match->score }}</span>
+                        <div>
+                            <div class="pz-person__name">{{ $match->assignment->title }}</div>
+                            <div class="pz-person__meta">{{ collect([$isStaff ? $match->candidate->name : null, $match->assignment->client_name, $match->assignment->deadline_at ? 'deadline '.$match->assignment->deadline_at->format('d-m H:i') : null])->filter()->implode(' · ') }}</div>
+                        </div>
+                        <div class="pz-person__aside"><x-filament::button tag="a" size="sm" color="gray" :href="$matchUrl($match)">Bekijken</x-filament::button></div>
+                    </div>
+                @endforeach
+                @if ($isStaff)
                 @foreach ($deadlineSoon as $assignment)
                     <div class="pz-person">
                         <span class="pz-chip pz-chip--warning">Deadline {{ $assignment->deadline_at->isToday() ? 'vandaag' : 'morgen' }} {{ $assignment->deadline_at->format('H:i') }}</span>
@@ -85,7 +106,8 @@
                         <div class="pz-person__aside"><x-filament::button tag="a" size="sm" color="gray" :href="$assignmentUrl($assignment)">Bekijken</x-filament::button></div>
                     </div>
                 @endforeach
-                <p class="pz-empty">Sterke matches en reacties op aanbiedingen verschijnen hier vanaf fase 3 en 4.</p>
+                @endif
+                <p class="pz-empty">Reacties op aanbiedingen verschijnen hier vanaf fase 4.</p>
             </div>
 
             <div class="pz-card">

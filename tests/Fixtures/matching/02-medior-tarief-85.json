@@ -1,0 +1,25 @@
+{
+    "opdracht": {
+        "title": "Medior PHP Developer",
+        "client_name": "Waterschap Voorbeeld",
+        "summary": "Uitbreiden van interne Laravel-applicaties en MySQL-rapportages.",
+        "seniority": "medior",
+        "contract_type": "detachering",
+        "zzp_allowed": true,
+        "work_mode": "hybride",
+        "hours_min": 32,
+        "hours_max": 36,
+        "start_asap": true,
+        "max_rate": 85,
+        "deadline_at": "2027-06-30 12:00:00",
+        "technologies": ["PHP", "Laravel", "MySQL", "Git"],
+        "requirements": [
+            {"id": "E1", "tekst": "Werkervaring met PHP en Laravel", "knock_out": true, "categorie": "techniek"},
+            {"id": "E2", "tekst": "Kennis van MySQL", "knock_out": false, "categorie": "techniek"}
+        ],
+        "wishes": [
+            {"id": "W1", "tekst": "Ervaring met Filament", "categorie": "techniek"}
+        ]
+    },
+    "verwacht": {"senior": "twijfel", "medior": "aanbieden"}
+}

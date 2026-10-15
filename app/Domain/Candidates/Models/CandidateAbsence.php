@@ -3,6 +3,7 @@
 namespace App\Domain\Candidates\Models;
 
 use App\Domain\Candidates\Enums\AbsenceType;
+use App\Domain\Candidates\Events\CandidateValuesChanged;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -26,6 +27,18 @@ class CandidateAbsence extends Model
             'starts_on' => 'date',
             'ends_on' => 'date',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        $changed = function (CandidateAbsence $absence): void {
+            if ($absence->candidate !== null) {
+                CandidateValuesChanged::dispatch($absence->candidate, ['absences']);
+            }
+        };
+
+        static::saved($changed);
+        static::deleted($changed);
     }
 
     /**

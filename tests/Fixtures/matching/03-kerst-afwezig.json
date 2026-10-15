@@ -1,0 +1,21 @@
+{
+    "opdracht": {
+        "title": "Laravel Developer (kortlopend)",
+        "client_name": "Provincie Voorbeeld",
+        "summary": "Kortlopende inzet voor een release rond de jaarwisseling.",
+        "seniority": "medior",
+        "contract_type": "beide",
+        "hours_min": 40,
+        "hours_max": 40,
+        "start_date": "2026-12-21",
+        "end_date": "2026-12-30",
+        "max_rate": 100,
+        "deadline_at": "2026-12-01 12:00:00",
+        "technologies": ["PHP", "Laravel"],
+        "requirements": [
+            {"id": "E1", "tekst": "Ervaring met Laravel", "knock_out": true, "categorie": "techniek"}
+        ],
+        "wishes": []
+    },
+    "verwacht": {"senior": "niet", "medior": "niet"}
+}

@@ -16,6 +16,7 @@ return [
         'cv-importer' => 'v2',
         'assignment-extractor' => 'v2',
         'alert-mail-splitter' => 'v1',
+        'match-assessor' => 'v2',
     ],
 
     /*

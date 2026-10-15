@@ -34,6 +34,7 @@ class ViewAssignment extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            AssignmentActions::match(),
             AssignmentActions::mergeDuplicate(),
             AssignmentActions::ignore(),
             AssignmentActions::reopen(),

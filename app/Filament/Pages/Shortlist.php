@@ -2,15 +2,30 @@
 
 namespace App\Filament\Pages;
 
+use App\Domain\Candidates\Models\Candidate;
+use App\Domain\Matching\Enums\MatchStatus;
+use App\Domain\Matching\Models\CandidateMatch;
 use App\Enums\Role;
 use App\Filament\NavigationGroup;
-use App\Filament\Support\PlannedFeaturePage;
+use App\Filament\Resources\Matches\MatchActions;
+use App\Filament\Resources\Matches\MatchResource;
+use App\Filament\Support\Access;
 use BackedEnum;
+use Filament\Notifications\Notification;
+use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Database\Eloquent\Collection;
 use UnitEnum;
 
-class Shortlist extends PlannedFeaturePage
+/**
+ * Shortlist als kanban (§15.5): kaart = opdracht × kandidaat. De kolommen na "Shortlist"
+ * (in voorbereiding, verzonden, reactie, intake, geplaatst) worden in fase 4 gevuld vanuit de
+ * aanbiedingen.
+ */
+class Shortlist extends Page
 {
+    protected string $view = 'filament.pages.shortlist';
+
     protected static ?string $slug = 'shortlist';
 
     protected static ?string $title = 'Shortlist';
@@ -23,17 +38,84 @@ class Shortlist extends PlannedFeaturePage
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedViewColumns;
 
-    protected static int $phase = 3;
-
-    protected static string $summary = 'Kanban van opdracht × kandidaat: Nieuw → Shortlist → In voorbereiding → Verzonden → Reactie → Intake → Geplaatst / Afgewezen.';
-
-    protected static array $features = [
-        'Deadline-herinnering bij < 24 uur',
-        'Direct doorklikken naar "Aanbieden"',
+    /**
+     * Kolommen die je kunt slepen; de rest volgt in fase 4.
+     *
+     * @var array<string, string>
+     */
+    public const COLUMNS = [
+        'nieuw' => 'Nieuw',
+        'shortlist' => 'Shortlist',
+        'afgewezen' => 'Afgewezen',
     ];
 
-    protected static function allowedRoles(): array
+    /** @var list<string> */
+    public const LATER_COLUMNS = ['In voorbereiding', 'Verzonden', 'Reactie', 'Intake', 'Geplaatst'];
+
+    public ?int $candidateId = null;
+
+    public static function canAccess(): bool
     {
-        return [Role::Beheerder, Role::Accountmanager];
+        return Access::hasAny([Role::Beheerder, Role::Accountmanager]);
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        $count = CandidateMatch::query()->where('status', MatchStatus::Shortlist->value)->forOpenAssignments()->count();
+
+        return $count > 0 ? (string) $count : null;
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Matches op de shortlist';
+    }
+
+    public function getSubheading(): string
+    {
+        return 'Sleep een kaart naar een andere kolom, of gebruik de knopjes op de kaart. "Nieuw" toont sterke en mogelijke matches die nog niet zijn ingedeeld.';
+    }
+
+    public function move(int $matchId, string $column): void
+    {
+        abort_unless(Access::isStaff(), 403);
+
+        $match = CandidateMatch::query()->with('assignment')->findOrFail($matchId);
+
+        match ($column) {
+            'shortlist' => MatchActions::toShortlist($match),
+            'afgewezen' => MatchActions::markRejected($match, ['reason' => 'Afgewezen op de shortlist']),
+            'nieuw' => $match->setStatus(MatchStatus::Bekeken),
+            default => abort(422),
+        };
+
+        Notification::make()->success()->title('Verplaatst naar '.self::COLUMNS[$column])->send();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function getViewData(): array
+    {
+        $base = fn () => CandidateMatch::query()
+            ->with(['assignment', 'candidate'])
+            ->forOpenAssignments()
+            ->when($this->candidateId !== null, fn ($query) => $query->where('candidate_id', $this->candidateId));
+
+        /** @var array<string, Collection<int, CandidateMatch>> $columns */
+        $columns = [
+            'nieuw' => $base()->promising()->whereIn('status', [MatchStatus::Nieuw->value, MatchStatus::Bekeken->value])->orderByDesc('score')->limit(30)->get(),
+            'shortlist' => $base()->where('status', MatchStatus::Shortlist->value)->get()
+                ->sortBy(fn (CandidateMatch $match): int => $match->assignment->deadline_at?->getTimestamp() ?? PHP_INT_MAX)->values(),
+            'afgewezen' => $base()->where('status', MatchStatus::Afgewezen->value)->where('status_changed_at', '>=', now()->subDays(30))->latest('status_changed_at')->limit(30)->get(),
+        ];
+
+        return [
+            'columns' => $columns,
+            'labels' => self::COLUMNS,
+            'later' => self::LATER_COLUMNS,
+            'candidates' => Candidate::query()->orderBy('name')->pluck('name', 'id')->all(),
+            'matchUrl' => fn (CandidateMatch $match): string => MatchResource::getUrl('view', ['record' => $match]),
+        ];
     }
 }

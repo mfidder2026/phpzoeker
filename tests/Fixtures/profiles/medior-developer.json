@@ -1,0 +1,51 @@
+{
+    "naam": "Sam Proefpersoon",
+    "cv_titel": "Medior PHP / Laravel Developer",
+    "tagline": "PHP, Laravel & integraties",
+    "profieltekst": "Medior developer met professionele ervaring in PHP en Laravel sinds 2025 en een stagetraject in softwareontwikkeling.",
+    "kernexpertise": [
+        {
+            "kop": "Backend",
+            "items": [
+                {"naam": "PHP", "niveau": "gevorderd", "sinds": null},
+                {"naam": "Laravel", "niveau": "gevorderd", "sinds": null},
+                {"naam": "Python", "niveau": "basis", "sinds": null}
+            ]
+        },
+        {
+            "kop": "Data",
+            "items": [
+                {"naam": "MySQL", "niveau": "gevorderd", "sinds": null}
+            ]
+        }
+    ],
+    "werkervaring": [
+        {
+            "id": "WE1",
+            "van": "2025-08",
+            "tot": "heden",
+            "functie": "PHP / Laravel Developer",
+            "organisatie": "Voorbeeld Software",
+            "via": null,
+            "subtitel": null,
+            "bullets": [
+                "Bouwt koppelingen met externe API's in Laravel.",
+                "Werkt aan beheerschermen met Filament."
+            ],
+            "technologieen": ["PHP", "Laravel", "MySQL", "Filament", "Git"]
+        }
+    ],
+    "projecten": [],
+    "opleidingen": [
+        {"periode": "2021–2025", "naam": "Software Development (mbo 4)", "instelling": "Voorbeeldcollege", "status": "behaald"}
+    ],
+    "certificaten": [],
+    "eerdere_ervaring": [
+        {"periode": "2022–2024", "functie": "Stagiair Software Developer", "organisatie": "Voorbeeld BV", "omschrijving": "Laravel-uitbreidingen tijdens de stage"}
+    ],
+    "talen": [
+        {"taal": "Nederlands", "niveau": "moedertaal"},
+        {"taal": "Engels", "niveau": "goed"}
+    ],
+    "overige_vaardigheden": ["Scrum"]
+}

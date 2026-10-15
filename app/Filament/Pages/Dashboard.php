@@ -6,9 +6,13 @@ use App\Ai\Budget\AiBudgetGuard;
 use App\Ai\Config\AiAgentProfile;
 use App\Domain\Assignments\Models\Assignment;
 use App\Domain\Candidates\Models\Candidate;
+use App\Domain\Matching\Enums\MatchLabel;
+use App\Domain\Matching\Enums\MatchStatus;
+use App\Domain\Matching\Models\CandidateMatch;
 use App\Domain\Sources\Models\Source;
 use App\Filament\Resources\Assignments\AssignmentResource;
 use App\Filament\Resources\Candidates\CandidateResource;
+use App\Filament\Resources\Matches\MatchResource;
 use App\Filament\Support\Access;
 use BackedEnum;
 use Filament\Pages\Dashboard as BaseDashboard;
@@ -16,8 +20,8 @@ use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Collection;
 
 /**
- * Startpagina (§15.5). Tegels voor matches, deadlines en aanbiedingen worden gevuld vanaf
- * fase 3 en 4; kandidaten en AI-verbruik zijn er nu al.
+ * Startpagina (§15.5): sterke matches, deadlines, bronstatus en AI-kosten. Aanbiedingen en
+ * reacties volgen in fase 4.
  */
 class Dashboard extends BaseDashboard
 {
@@ -53,6 +57,11 @@ class Dashboard extends BaseDashboard
             ->orderBy('name')
             ->get();
 
+        $matches = fn () => CandidateMatch::query()
+            ->with(['assignment', 'candidate'])
+            ->forOpenAssignments()
+            ->when($user?->isKandidaat(), fn ($query) => $query->where('candidate_id', $user?->candidate_id));
+
         $hour = (int) now()->format('G');
 
         return [
@@ -73,6 +82,11 @@ class Dashboard extends BaseDashboard
             'deadlineSoon' => Assignment::query()->open()->where('is_relevant', true)->whereBetween('deadline_at', [now(), now()->addDay()])->orderBy('deadline_at')->get(),
             'latestAssignments' => Assignment::query()->open()->where('is_relevant', true)->latest()->limit(5)->get(),
             'sources' => Source::query()->orderByDesc('enabled')->orderBy('name')->get(),
+            'strongToday' => $matches()->where('label', MatchLabel::Sterk->value)->where('created_at', '>=', now()->startOfDay())->count(),
+            'strongOpen' => $matches()->where('label', MatchLabel::Sterk->value)->whereIn('status', [MatchStatus::Nieuw->value, MatchStatus::Bekeken->value])->orderByDesc('score')->limit(8)->get(),
+            'shortlistSoon' => $matches()->where('status', MatchStatus::Shortlist->value)
+                ->whereHas('assignment', fn ($query) => $query->whereBetween('deadline_at', [now(), now()->addDay()]))->get(),
+            'matchUrl' => fn (CandidateMatch $match): string => MatchResource::getUrl('view', ['record' => $match]),
             'assignmentUrl' => fn (Assignment $assignment): string => AssignmentResource::getUrl('view', ['record' => $assignment]),
         ];
     }

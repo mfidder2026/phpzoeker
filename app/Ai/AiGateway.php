@@ -58,6 +58,7 @@ class AiGateway
 
         $response = $this->providers->make($profile)->chat($request);
         $run->recordUsage($response);
+        $this->budget->notifyThresholds($profile);
 
         return $response;
     }
@@ -111,6 +112,7 @@ class AiGateway
 
         $retry = $this->providers->make($profile)->chat($retryRequest);
         $run->recordUsage($retry);
+        $this->budget->notifyThresholds($profile);
 
         $data = $retry->json();
         $error = $validator === null ? null : $validator($data);

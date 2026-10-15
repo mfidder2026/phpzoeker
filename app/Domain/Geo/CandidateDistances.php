@@ -39,6 +39,28 @@ class CandidateDistances
         return $rows;
     }
 
+    /**
+     * Reistijd in minuten van één kandidaat naar de opdracht, of null als een locatie onbekend is.
+     */
+    public function minutesFor(Assignment $assignment, Candidate $candidate): ?int
+    {
+        if ($assignment->lat === null || $assignment->lng === null) {
+            return null;
+        }
+
+        try {
+            $this->ensureLocation($candidate);
+        } catch (\Throwable) {
+            return null;
+        }
+
+        if ($candidate->getAttribute('lat') === null) {
+            return null;
+        }
+
+        return Distance::travelMinutes(Distance::roadKm((float) $candidate->getAttribute('lat'), (float) $candidate->getAttribute('lng'), (float) $assignment->lat, (float) $assignment->lng));
+    }
+
     public function ensureLocation(Candidate $candidate): void
     {
         if ($candidate->getAttribute('lat') !== null || blank($candidate->city)) {

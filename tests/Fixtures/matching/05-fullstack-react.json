@@ -1,0 +1,24 @@
+{
+    "opdracht": {
+        "title": "Full Stack Developer Laravel / React",
+        "client_name": "Woningcorporatie Voorbeeld",
+        "summary": "Bouw van een huurdersportaal met een Laravel-API en een React/TypeScript-frontend.",
+        "seniority": "senior",
+        "contract_type": "zzp",
+        "work_mode": "remote",
+        "hours_min": 24,
+        "hours_max": 32,
+        "start_asap": true,
+        "max_rate": 98,
+        "deadline_at": "2027-06-30 12:00:00",
+        "technologies": ["PHP", "Laravel", "React", "TypeScript", "PostgreSQL"],
+        "requirements": [
+            {"id": "E1", "tekst": "Minimaal 3 jaar ervaring met React", "knock_out": true, "categorie": "ervaring", "min_jaren": 3, "technologie": "React"},
+            {"id": "E2", "tekst": "Ervaring met Laravel", "knock_out": true, "categorie": "techniek"}
+        ],
+        "wishes": [
+            {"id": "W1", "tekst": "Ervaring met TypeScript", "categorie": "techniek"}
+        ]
+    },
+    "verwacht": {"senior": "aanbieden", "medior": "niet"}
+}

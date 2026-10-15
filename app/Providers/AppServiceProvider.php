@@ -6,13 +6,18 @@ use App\Ai\Config\AiAgentProfile;
 use App\Ai\Providers\AiProviderFactory;
 use App\Ai\Runs\AiRun;
 use App\Ai\Support\SecretRedactor;
+use App\Domain\Assignments\Events\AssignmentIngested;
 use App\Domain\Assignments\Models\Assignment;
+use App\Domain\Candidates\Events\CandidateValuesChanged;
 use App\Domain\Candidates\Models\Candidate;
 use App\Domain\Candidates\Models\CandidateProfile;
 use App\Domain\Documents\Contracts\PdfConverter;
 use App\Domain\Documents\GotenbergPdfConverter;
 use App\Domain\Geo\Geocoder;
 use App\Domain\Geo\PdokGeocoder;
+use App\Domain\Matching\Listeners\MatchIngestedAssignment;
+use App\Domain\Matching\Listeners\RematchChangedCandidate;
+use App\Domain\Matching\Models\CandidateMatch;
 use App\Domain\Relations\Models\Organization;
 use App\Domain\Sources\Mailbox\ImapMailboxClient;
 use App\Domain\Sources\Mailbox\MailboxClient;
@@ -28,11 +33,13 @@ use App\Policies\AiRunPolicy;
 use App\Policies\AssignmentPolicy;
 use App\Policies\CandidatePolicy;
 use App\Policies\CandidateProfilePolicy;
+use App\Policies\MatchPolicy;
 use App\Policies\SourcePolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Foundation\DevCommands;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
@@ -71,6 +78,7 @@ class AppServiceProvider extends ServiceProvider
             'raw_posting' => RawPosting::class,
             'assignment' => Assignment::class,
             'organization' => Organization::class,
+            'match' => CandidateMatch::class,
         ]);
 
         Gate::policy(Candidate::class, CandidatePolicy::class);
@@ -81,6 +89,10 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Activity::class, ActivityPolicy::class);
         Gate::policy(Assignment::class, AssignmentPolicy::class);
         Gate::policy(Source::class, SourcePolicy::class);
+        Gate::policy(CandidateMatch::class, MatchPolicy::class);
+
+        Event::listen(AssignmentIngested::class, MatchIngestedAssignment::class);
+        Event::listen(CandidateValuesChanged::class, RematchChangedCandidate::class);
 
         Livewire::component('ai-gauge', AiGauge::class);
         Livewire::component('ai-run-progress-panel', AiRunProgressPanel::class);
