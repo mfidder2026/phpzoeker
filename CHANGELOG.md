@@ -10,8 +10,8 @@
 - Planning: elke minuut bronnen die aan de beurt zijn, elk uur sluiten, dagelijks 07:00 gezondheidscheck met melding aan de beheerder.
 - Organisaties en contactpersonen worden bij extractie herkend; contactadressen alleen als ze letterlijk in de publicatie staan (R5).
 - Bronnen: De Publieke Partner (RSS, staat uit tot de ToS-check), Alerts-mailbox (nog te configureren), Handmatig.
-- Koppeling met het gedeelde postvak **aanvragen@fremen.app** via Microsoft Graph: categorie in plaats van gelezen markeren, client-secret versleuteld en nooit getoond; stappen voor de app-registratie in `docs/m365-aanvragen-mailbox.md`.
-- `php artisan eval:extraction`; 48 nieuwe tests (128 totaal).
+- Koppeling met het gedeelde postvak **aanvragen@fremen.app** via Microsoft Graph met knop **Inloggen bij Microsoft** (eenmalig inloggen met een code, geen app-registratie nodig): categorie in plaats van gelezen markeren, tokens versleuteld en nooit getoond, verbinding verbreken; zie `docs/m365-aanvragen-mailbox.md`.
+- `php artisan eval:extraction`; 52 nieuwe tests (132 totaal).
 
 ### Gewijzigd
 - App-tijdzone Europe/Amsterdam.

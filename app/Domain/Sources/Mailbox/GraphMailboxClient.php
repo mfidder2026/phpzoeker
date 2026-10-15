@@ -12,8 +12,9 @@ use RuntimeException;
 
 /**
  * Microsoft 365-mailbox via Microsoft Graph (§8.5), bijvoorbeeld het gedeelde postvak
- * aanvragen@fremen.app. Werkt met een app-registratie (client credentials) die alleen op die
- * mailbox rechten heeft. Verwerkte mails krijgen een categorie; gelezen/ongelezen blijft van
+ * aanvragen@fremen.app. Standaard met een eenmalige Microsoft-login van een gebruiker die
+ * toegang heeft tot de mailbox ({@see MicrosoftLogin}); als alternatief een eigen
+ * app-registratie (client credentials, `auth = app`). Verwerkte mails krijgen een categorie; gelezen/ongelezen blijft van
  * de collega's die de mailbox gebruiken, en er wordt niets verwijderd.
  */
 class GraphMailboxClient implements MailboxClient
@@ -120,7 +121,7 @@ class GraphMailboxClient implements MailboxClient
 
         throw new RuntimeException(match ($response->status()) {
             401 => 'Microsoft Graph weigert de toegang: het token is ongeldig of verlopen.',
-            403 => 'De app-registratie heeft geen rechten op deze mailbox. Controleer de rol "Application Mail.ReadWrite" met het bereik op deze mailbox (RBAC for Applications); een nieuwe toewijzing kan tot 2 uur duren.',
+            403 => 'Geen rechten op deze mailbox. Controleer of het ingelogde account (of de app-registratie) volledige toegang heeft tot de mailbox.',
             404 => 'De mailbox of map is niet gevonden. Controleer het mailadres en de mapnaam (standaard "Inbox").',
             429 => 'Microsoft Graph beperkt het aantal verzoeken; de app probeert het bij de volgende run opnieuw.',
             default => 'Microsoft Graph gaf HTTP '.$response->status().': '.SecretRedactor::redact(mb_substr((string) $response->json('error.message', ''), 0, 200)),
@@ -128,12 +129,16 @@ class GraphMailboxClient implements MailboxClient
     }
 
     /**
-     * Client-credentials-token, 50 minuten gecachet per app-registratie.
+     * Toegangstoken: via de Microsoft-login, of met client credentials (50 minuten gecachet).
      *
      * @param  array<string, mixed>  $config
      */
     private function token(array $config): string
     {
+        if (($config['auth'] ?? 'delegated') !== 'app') {
+            return app(MicrosoftLogin::class)->accessToken($config);
+        }
+
         $tenant = trim((string) ($config['tenant_id'] ?? ''));
         $client = trim((string) ($config['client_id'] ?? ''));
         $secret = (string) ($config['client_secret'] ?? '');

@@ -34,7 +34,7 @@ class MailboxAlertConnector implements AcknowledgesPostings, SourceConnector
     {
         $internalDomains = array_map('strtolower', (array) $source->configValue('internal_domains', ['fremen.app']));
 
-        foreach ($this->mailboxes->for($source->config ?? [])->unprocessed($source->config ?? [], $since, $this->settings->max_items_per_run) as $mail) {
+        foreach ($this->mailboxes->for($source->config ?? [])->unprocessed(self::config($source), $since, $this->settings->max_items_per_run) as $mail) {
             $text = trim($mail->text) !== '' ? $mail->text : FetchPageTool::extractText((string) $mail->html)['text'];
 
             yield new RawPostingData(
@@ -57,8 +57,18 @@ class MailboxAlertConnector implements AcknowledgesPostings, SourceConnector
     public function acknowledge(Source $source, RawPostingData $posting): void
     {
         if (isset($posting->meta['uid'])) {
-            $this->mailboxes->for($source->config ?? [])->markProcessed($source->config ?? [], (string) $posting->meta['uid']);
+            $this->mailboxes->for($source->config ?? [])->markProcessed(self::config($source), (string) $posting->meta['uid']);
         }
+    }
+
+    /**
+     * Bronconfiguratie plus de bron-ID, zodat vernieuwde Microsoft-tokens bewaard kunnen worden.
+     *
+     * @return array<string, mixed>
+     */
+    private static function config(Source $source): array
+    {
+        return [...($source->config ?? []), 'source_id' => $source->id];
     }
 
     public function test(Source $source): ConnectorTestResult

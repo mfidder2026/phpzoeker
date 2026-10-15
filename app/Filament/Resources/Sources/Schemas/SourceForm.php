@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Sources\Schemas;
 
 use App\Domain\Sources\Enums\SourceType;
 use App\Domain\Sources\Mailbox\GraphMailboxClient;
+use App\Domain\Sources\Models\Source;
 use App\Settings\IngestSettings;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -12,9 +13,11 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Text;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 class SourceForm
@@ -53,10 +56,15 @@ class SourceForm
                     TextInput::make('config.mailbox')->label('Mailbox')->email()->placeholder('aanvragen@fremen.app')
                         ->visible(fn (Get $get): bool => $get('config.protocol') === 'graph')->required(fn (Get $get): bool => $get('config.protocol') === 'graph'),
                     TextInput::make('config.folder')->label('Map')->default('Inbox'),
-                    TextInput::make('config.tenant_id')->label('Tenant-ID')->visible(fn (Get $get): bool => $get('config.protocol') === 'graph'),
-                    TextInput::make('config.client_id')->label('Client-ID (app-registratie)')->visible(fn (Get $get): bool => $get('config.protocol') === 'graph'),
+                    Select::make('config.auth')->label('Aanmelden')->default('delegated')->live()
+                        ->options(['delegated' => 'Eenmalig inloggen met een Microsoft-account (aanbevolen)', 'app' => 'Eigen app-registratie (geavanceerd)'])
+                        ->visible(fn (Get $get): bool => $get('config.protocol') === 'graph'),
+                    Text::make(fn (?Source $record): string => self::connectionStatus($record))->columnSpan(2)
+                        ->visible(fn (Get $get): bool => $get('config.protocol') === 'graph' && ($get('config.auth') ?? 'delegated') !== 'app'),
+                    TextInput::make('config.tenant_id')->label('Tenant-ID')->visible(fn (Get $get): bool => $get('config.protocol') === 'graph' && $get('config.auth') === 'app'),
+                    TextInput::make('config.client_id')->label('Client-ID (app-registratie)')->visible(fn (Get $get): bool => $get('config.protocol') === 'graph' && $get('config.auth') === 'app'),
                     TextInput::make('config.client_secret')->label('Client-secret')->password()->autocomplete('new-password')
-                        ->visible(fn (Get $get): bool => $get('config.protocol') === 'graph')
+                        ->visible(fn (Get $get): bool => $get('config.protocol') === 'graph' && $get('config.auth') === 'app')
                         ->helperText('Versleuteld opgeslagen en nooit meer getoond. Laat leeg om het huidige secret te behouden.'),
                     TextInput::make('config.processed_category')->label('Categorie voor verwerkte mails')->placeholder(GraphMailboxClient::DEFAULT_CATEGORY)
                         ->visible(fn (Get $get): bool => $get('config.protocol') === 'graph')
@@ -86,6 +94,21 @@ class SourceForm
                             : 'De scheduler haalt de bron op volgens het interval.'),
                 ]),
         ]);
+    }
+
+    private static function connectionStatus(?Source $source): string
+    {
+        $config = $source->config ?? [];
+
+        if (blank($config['refresh_token'] ?? null)) {
+            return $source === null
+                ? 'Sla de bron eerst op; daarna kun je rechtsboven inloggen bij Microsoft.'
+                : 'Nog niet verbonden. Klik rechtsboven op "Inloggen bij Microsoft" en log één keer in met een account dat toegang heeft tot deze mailbox.';
+        }
+
+        $since = isset($config['connected_at']) ? Carbon::parse((string) $config['connected_at'])->format('d-m-Y H:i') : '';
+
+        return '✓ Verbonden met Microsoft 365 als '.($config['connected_account'] ?? 'onbekend account').($since !== '' ? ' sinds '.$since : '').'. De app vernieuwt de verbinding zelf.';
     }
 
     private static function type(Get $get): ?SourceType

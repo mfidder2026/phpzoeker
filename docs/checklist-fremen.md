@@ -16,9 +16,8 @@ Handwerk dat Fremen zelf moet doen; de app ondersteunt het.
 
 ## Aanvragen-mailbox (§8.5)
 De app leest het gedeelde postvak **aanvragen@fremen.app** (Microsoft 365). Stappen: [`docs/m365-aanvragen-mailbox.md`](m365-aanvragen-mailbox.md).
-- [ ] App-registratie "PHP Zoeker" in Entra ID (client-ID, tenant-ID, client-secret).
-- [ ] Rechten via Exchange RBAC for Applications: rol `Application Mail.ReadWrite`, bereik alleen aanvragen@fremen.app.
-- [ ] Gegevens invullen bij **Bronnen → Aanvragen-mailbox**, Test run, ToS-datum invullen en de bron aanzetten.
+- [ ] **Bronnen → Aanvragen-mailbox → Inloggen bij Microsoft**: één keer inloggen met een account dat toegang heeft tot aanvragen@fremen.app.
+- [ ] Test run, ToS-datum invullen en de bron aanzetten.
 - [ ] Job alerts instellen met aanvragen@fremen.app als ontvanger (LinkedIn, Striive, Freelance.nl, Hoofdkraan, IT-contracts, intermediairs).
 - [ ] **De Publieke Partner**: samenvatting van de voorwaarden staat in `docs/bronnen.md`. Besluit nemen en in **Bronnen → De Publieke Partner** de ToS-check invullen en de bron aanzetten.
 - [ ] ±20 echte job-alert-mails (geanonimiseerd) aanleveren voor de evaluatieset (`eval:extraction`).
