@@ -23,6 +23,7 @@ use App\Settings\IngestSettings;
 use Database\Seeders\SourceSeeder;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Str;
 
 /**
  * Bijlage B-output zoals het model die teruggeeft.
@@ -300,9 +301,9 @@ it('splits an alert mail into separate postings', function () {
 });
 
 it('closes assignments after the deadline or when no longer seen', function () {
-    $open = Assignment::query()->create(['dedupe_group_id' => 'a', 'title' => 'Open', 'status' => AssignmentStatus::Nieuw, 'deadline_at' => now()->addDay(), 'last_seen_at' => now()]);
-    $expired = Assignment::query()->create(['dedupe_group_id' => 'b', 'title' => 'Verlopen', 'status' => AssignmentStatus::Nieuw, 'deadline_at' => now()->subHour(), 'last_seen_at' => now()]);
-    $unseen = Assignment::query()->create(['dedupe_group_id' => 'c', 'title' => 'Weg', 'status' => AssignmentStatus::Nieuw, 'last_seen_at' => now()->subDays(15)]);
+    $open = Assignment::query()->create(['dedupe_group_id' => (string) Str::uuid(), 'title' => 'Open', 'status' => AssignmentStatus::Nieuw, 'deadline_at' => now()->addDay(), 'last_seen_at' => now()]);
+    $expired = Assignment::query()->create(['dedupe_group_id' => (string) Str::uuid(), 'title' => 'Verlopen', 'status' => AssignmentStatus::Nieuw, 'deadline_at' => now()->subHour(), 'last_seen_at' => now()]);
+    $unseen = Assignment::query()->create(['dedupe_group_id' => (string) Str::uuid(), 'title' => 'Weg', 'status' => AssignmentStatus::Nieuw, 'last_seen_at' => now()->subDays(15)]);
 
     $closed = app(CloseExpiredAssignmentsJob::class)->handle(app(IngestSettings::class));
 

@@ -5,6 +5,7 @@ use App\Domain\Candidates\Models\Candidate;
 use App\Domain\Geo\Geocoder;
 use App\Enums\Role;
 use App\Models\User;
+use Illuminate\Support\Str;
 
 $adminPages = [
     '/', '/opdrachten', '/matches', '/shortlist', '/aanbiedingsregister', '/handmatig-registreren',
@@ -92,7 +93,7 @@ it('renders the assignment detail with sources and travel distances', function (
     });
     Candidate::factory()->create(['name' => 'Alex Voorbeeld', 'city' => 'Rotterdam']);
     $assignment = Assignment::query()->create([
-        'dedupe_group_id' => 'x', 'title' => 'Senior Laravel Developer', 'client_name' => 'Gemeente Voorbeeldstad',
+        'dedupe_group_id' => (string) Str::uuid(), 'title' => 'Senior Laravel Developer', 'client_name' => 'Gemeente Voorbeeldstad',
         'city' => 'Vlaardingen', 'lat' => 51.9174, 'lng' => 4.3279, 'max_rate' => 95,
         'requirements' => [['id' => 'E1', 'tekst' => 'Minimaal 5 jaar Laravel', 'knock_out' => true, 'categorie' => 'ervaring']],
         'status' => 'nieuw', 'first_seen_at' => now(), 'last_seen_at' => now(),
