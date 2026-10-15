@@ -1,0 +1,22 @@
+Senior Laravel Developer – Gemeente Voorbeeldstad
+Aanvraagnummer: VB-2026-118
+Contractvorm: Detachering
+Organisatie: Gemeente Voorbeeldstad
+Locatie: Voorbeeldstad - Zuid-Holland
+Uren per week: 32-36
+Startdatum: 01-11-2026
+Duur van de opdracht: 6 maanden, met optie tot verlenging
+Sluitingsdatum: 20-10-2026
+ZZP is toegestaan
+Maximaal tarief: € 95,- per uur excl. btw
+
+Opdracht
+Je ontwikkelt en onderhoudt het zaaksysteem van de gemeente in PHP en Laravel, inclusief API-koppelingen.
+
+Eisen
+- Minimaal 5 jaar ervaring met Laravel.
+- Aantoonbare ervaring met PostgreSQL.
+Wensen
+- Ervaring met Filament.
+
+Contact: Jan de Vries, inhuur@voorbeeldstad.example.nl

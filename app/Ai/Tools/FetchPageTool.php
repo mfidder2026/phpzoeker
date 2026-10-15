@@ -106,11 +106,24 @@ class FetchPageTool
         }
 
         $title = trim((string) $xpath->evaluate('string(//title)'));
-        $body = $document->getElementsByTagName('body')->item(0);
-        $text = $body !== null ? $body->textContent : '';
+        // Hoofdinhoud als die er is (menu's en kop/voet vallen dan weg), anders de hele body.
+        $main = $xpath->query('//main|//article');
+        $body = ($main !== false ? $main->item(0) : null) ?? $document->getElementsByTagName('body')->item(0);
+        $text = $body instanceof DOMNode ? $body->textContent : '';
         $text = trim((string) preg_replace('/\s+/u', ' ', $text));
 
         return ['title' => $title, 'text' => mb_substr($text, 0, self::MAX_TEXT_LENGTH)];
+    }
+
+    /**
+     * Mag deze URL volgens robots.txt worden opgehaald door PHPZoeker?
+     */
+    public function allowedByRobots(string $url): bool
+    {
+        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+
+        return $host !== '' && $this->robotsAllow($scheme ?: 'https', $host, (string) (parse_url($url, PHP_URL_PATH) ?: '/'));
     }
 
     private function robotsAllow(string $scheme, string $host, string $path): bool

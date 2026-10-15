@@ -16,7 +16,9 @@ Handwerk dat Fremen zelf moet doen; de app ondersteunt het.
 
 ## Alerts-mailbox (§8.5)
 - [ ] Job alerts op **LinkedIn** instellen (bijv. "Laravel", "PHP developer", Nederland) naar de alerts-mailbox; de app scrapet LinkedIn niet (R3).
-- [ ] Gebruiksvoorwaarden van **De Publieke Partner** lezen en de ToS-check vastleggen; daarna kan de RSS-feed als bron aan (fase 2).
+- [ ] **De Publieke Partner**: samenvatting van de voorwaarden staat in `docs/bronnen.md`. Besluit nemen en in **Bronnen → De Publieke Partner** de ToS-check (datum + notitie) invullen en de bron aanzetten.
+- [ ] Bron **Alerts-mailbox** configureren (IMAP-server, gebruiker, app-wachtwoord) en ToS-notitie invullen, daarna aanzetten.
+- [ ] ±20 echte job-alert-mails (geanonimiseerd) aanleveren voor de evaluatieset (`eval:extraction`).
 - [ ] Gedeelde mailbox aanmaken, bijvoorbeeld `opdrachten@fremen.app`.
 - [ ] Op elke bron uit §8.2 alerts instellen met de zoekprofielen uit Bijlage A.
 - [ ] Per afzender een map maken of laten routeren op afzenderdomein.

@@ -1,6 +1,8 @@
 <?php
 
+use App\Domain\Assignments\Models\Assignment;
 use App\Domain\Candidates\Models\Candidate;
+use App\Domain\Geo\Geocoder;
 use App\Enums\Role;
 use App\Models\User;
 
@@ -8,7 +10,7 @@ $adminPages = [
     '/', '/opdrachten', '/matches', '/shortlist', '/aanbiedingsregister', '/handmatig-registreren',
     '/kandidaten', '/relaties', '/rapportages', '/ai-activiteit', '/bronnen', '/gebruikers', '/audit-log',
     '/instellingen/algemeen', '/instellingen/mail', '/instellingen/matching', '/instellingen/register',
-    '/instellingen/meldingen', '/instellingen/ai-agent', '/instellingen/cv', '/instellingen/privacy',
+    '/instellingen/meldingen', '/instellingen/ai-agent', '/instellingen/cv', '/instellingen/privacy', '/instellingen/ingest', '/bronnen/create',
 ];
 
 it('shows every page of the left menu to the beheerder', function (string $url) {
@@ -72,4 +74,33 @@ it('requires a role to enter the app', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user)->get('/')->assertForbidden();
+});
+
+it('shows sources only to the beheerder and assignments to staff and reviewers', function () {
+    $this->actingAs(userWithRoles(Role::Accountmanager))->get('/bronnen')->assertForbidden();
+    $this->actingAs(userWithRoles(Role::Accountmanager))->get('/opdrachten')->assertOk();
+    $this->actingAs(userWithRoles(Role::Reviewer))->get('/opdrachten')->assertOk();
+});
+
+it('renders the assignment detail with sources and travel distances', function () {
+    app()->instance(Geocoder::class, new class implements Geocoder
+    {
+        public function geocode(string $place): ?array
+        {
+            return ['lat' => 51.92, 'lng' => 4.48, 'place' => $place, 'province' => 'Zuid-Holland'];
+        }
+    });
+    Candidate::factory()->create(['name' => 'Alex Voorbeeld', 'city' => 'Rotterdam']);
+    $assignment = Assignment::query()->create([
+        'dedupe_group_id' => 'x', 'title' => 'Senior Laravel Developer', 'client_name' => 'Gemeente Voorbeeldstad',
+        'city' => 'Vlaardingen', 'lat' => 51.9174, 'lng' => 4.3279, 'max_rate' => 95,
+        'requirements' => [['id' => 'E1', 'tekst' => 'Minimaal 5 jaar Laravel', 'knock_out' => true, 'categorie' => 'ervaring']],
+        'status' => 'nieuw', 'first_seen_at' => now(), 'last_seen_at' => now(),
+    ]);
+
+    $this->actingAs(beheerder())->get('/opdrachten/'.$assignment->id.'?tab=reisafstand::data::tab')
+        ->assertOk()
+        ->assertSee('Senior Laravel Developer')
+        ->assertSee('Gemeente Voorbeeldstad')
+        ->assertSee('Minimaal 5 jaar Laravel');
 });

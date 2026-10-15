@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Voorbeeld intermediair</title>
+  <entry>
+    <id>urn:uuid:opdracht-7001</id>
+    <title>Laravel Developer (32-40 uur)</title>
+    <link rel="alternate" href="https://intermediair.example.nl/opdracht/7001"/>
+    <published>2026-10-14T08:30:00Z</published>
+    <summary type="html">&lt;p&gt;Voor een zorgverzekeraar zoeken wij een Laravel developer, 32-40 uur, hybride in Utrecht.&lt;/p&gt;</summary>
+  </entry>
+</feed>

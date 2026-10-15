@@ -14,6 +14,8 @@ return [
 
     'prompts' => [
         'cv-importer' => 'v2',
+        'assignment-extractor' => 'v2',
+        'alert-mail-splitter' => 'v1',
     ],
 
     /*

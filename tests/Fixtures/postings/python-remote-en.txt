@@ -1,0 +1,14 @@
+Python Backend Engineer – remote (NL)
+Client: Research institute in the Netherlands
+Location: Remote (occasionally Leiden)
+Hours: 24-32 hours per week
+Start: 1 December 2026, 9 months
+Rate: up to EUR 85 per hour
+Freelancers welcome; secondment also possible.
+Apply before 2026-10-28 17:00.
+
+Requirements
+- 4+ years of professional Python development (FastAPI or Django).
+- Experience with PostgreSQL.
+Nice to have
+- Experience with data pipelines (Airflow).

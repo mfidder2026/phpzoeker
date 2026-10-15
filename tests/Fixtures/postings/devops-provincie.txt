@@ -1,0 +1,12 @@
+DevOps Engineer Laravel-platform
+Aanvraagnummer: PRV-2026-0931
+Opdrachtgever: Provincie Voorbeeld
+Plaats: Arnhem
+Inzet: 4 dagen per week
+Start: per direct, duur 12 maanden met optie op verlenging (2x 6 maanden)
+Maximumtarief: 88 euro per uur (excl. btw)
+ZZP is niet toegestaan.
+Deadline: 26 oktober 2026
+
+Je beheert en automatiseert de hosting van het Laravel-platform (Docker, Kubernetes, GitLab CI).
+Eisen: minimaal 2 jaar ervaring met Kubernetes; ervaring met Laravel-applicaties in productie.

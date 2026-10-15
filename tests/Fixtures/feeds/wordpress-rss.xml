@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<channel>
+  <title>ZZP Opdrachten ICT - Voorbeeldplatform</title>
+  <link>https://opdrachten.example.nl</link>
+  <item>
+    <title>Senior PHP Developer &#8211; Gemeente Voorbeeldstad</title>
+    <link>https://opdrachten.example.nl/senior-php-developer-gemeente-voorbeeldstad/</link>
+    <guid isPermaLink="false">https://opdrachten.example.nl/?p=101</guid>
+    <pubDate>Thu, 15 Oct 2026 10:13:20 +0000</pubDate>
+    <category><![CDATA[ICT en Automatisering]]></category>
+    <description><![CDATA[<p>The post <a href="https://opdrachten.example.nl/senior-php-developer/">Senior PHP Developer</a> appeared first on Voorbeeldplatform.</p>]]></description>
+  </item>
+  <item>
+    <title>Senior Werkplek Specialist</title>
+    <link>https://opdrachten.example.nl/senior-werkplek-specialist/</link>
+    <guid isPermaLink="false">https://opdrachten.example.nl/?p=102</guid>
+    <pubDate>Thu, 15 Oct 2026 09:00:00 +0000</pubDate>
+    <description><![CDATA[Beheer van werkplekken in een gemeentelijke omgeving.]]></description>
+  </item>
+</channel>
+</rss>
