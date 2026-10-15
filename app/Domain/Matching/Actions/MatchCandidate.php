@@ -254,7 +254,7 @@ class MatchCandidate
      */
     private function inputHash(Assignment $assignment, ProfileFacts $facts): string
     {
-        return hash('sha256', (string) json_encode([
+        return hash('sha256', (string) json_encode(self::canonical([
             $assignment->title,
             $assignment->summary,
             $assignment->seniority,
@@ -263,6 +263,23 @@ class MatchCandidate
             $assignment->technologies,
             $facts->profileVersion(),
             $facts->candidate->seniority->value,
-        ]));
+        ])));
+    }
+
+    /**
+     * Sleutels gesorteerd: PostgreSQL (jsonb) bewaart objecten in een andere volgorde dan ze zijn
+     * opgeslagen, en dezelfde inhoud moet dezelfde hash geven.
+     */
+    private static function canonical(mixed $value): mixed
+    {
+        if (! is_array($value)) {
+            return $value;
+        }
+
+        if (! array_is_list($value)) {
+            ksort($value);
+        }
+
+        return array_map(self::canonical(...), $value);
     }
 }

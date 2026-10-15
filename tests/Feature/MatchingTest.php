@@ -270,3 +270,23 @@ it('evaluates the example set with eval:matching', function () {
     expect(CandidateMatch::query()->count())->toBe(0);
     Notification::assertNothingSent();
 });
+
+it('treats the same requirements with a different key order as the same input', function () {
+    Http::fake(['ollama.test/*' => Http::response(ollamaReply(assessmentJson()))]);
+    $assignment = openAssignment();
+    $candidate = seniorCandidate();
+
+    app(MatchCandidate::class)->handle($assignment, $candidate);
+
+    // PostgreSQL (jsonb) geeft objecten terug met de sleutels in een andere volgorde.
+    $reordered = array_map(function (array $requirement): array {
+        krsort($requirement);
+
+        return $requirement;
+    }, $assignment->requirements);
+    $assignment->forceFill(['requirements' => $reordered])->saveQuietly();
+
+    app(MatchCandidate::class)->handle($assignment->refresh(), $candidate);
+
+    Http::assertSentCount(1);
+});
