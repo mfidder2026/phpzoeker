@@ -13,9 +13,10 @@
 - **Verwachte reactie** in werkdagen met Nederlandse feestdagen (termijn van de aanbieding, relatie, bron of globaal; later van verzending en deadline; 17:00), indicator groen/oranje/rood, menubadge, elk uur een melding bij een verlopen reactie aan de aanbieder en Michel, opvolgmail in dezelfde conversatie en een nieuwe verwachte reactie (+3 werkdagen). Voorstel "geen reactie" na 2 opvolgingen en 10 werkdagen.
 - **Handmatig registreren** (§11.8) met import van een .eml (kopregels, datum en bijlagen) en upload van het CV; minimale opdracht in één stap.
 - **Relaties** (§11.9): organisaties met contactpersonen, standaard en gemeten reactietijd (nachtelijk berekend, voorstel bij > 2 werkdagen verschil), alle aanbiedingen per relatie, samenvoegen.
+- **Verzenden via Microsoft 365**: eenmalige Microsoft-login op Instellingen → Mail, verzending vanuit de afzendermailbox (staat in Verzonden items), opvolgmail als antwoord in dezelfde conversatie, testmail, verbinding verbreken. SMTP blijft als alternatief.
 - **Bron OverheidZZP** via een nieuwe connector voor openbare overzichtspagina's (`HtmlListingConnector`; robots.txt-check, linkpatroon, kaarttekst), staat uit tot de ToS-check.
 - Shortlist-kanban toont nu ook de aanbiedingen; dashboard met aanbiedingen deze week en reacties verlopen; opdracht-detail toont "… is al aangeboden via …".
-- 34 nieuwe tests (214 totaal).
+- 42 nieuwe tests (222 totaal).
 ## [Fase 3 — matching en meldingen] — 15-10-2026
 
 ### Toegevoegd

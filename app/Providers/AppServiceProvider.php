@@ -19,6 +19,7 @@ use App\Domain\Geo\PdokGeocoder;
 use App\Domain\Matching\Listeners\MatchIngestedAssignment;
 use App\Domain\Matching\Listeners\RematchChangedCandidate;
 use App\Domain\Matching\Models\CandidateMatch;
+use App\Domain\Offers\Mailers\MicrosoftGraphMailer;
 use App\Domain\Offers\Mailers\OutboundMailer;
 use App\Domain\Offers\Mailers\SmtpOutboundMailer;
 use App\Domain\Offers\Models\Offer;
@@ -46,6 +47,7 @@ use App\Policies\OfferPolicy;
 use App\Policies\OrganizationPolicy;
 use App\Policies\SourcePolicy;
 use App\Policies\UserPolicy;
+use App\Settings\MailSettings;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Foundation\DevCommands;
 use Illuminate\Support\Carbon;
@@ -64,8 +66,10 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(AiProviderFactory::class);
         $this->app->bind(MailboxClient::class, ImapMailboxClient::class);
-        // Uitgaande aanbiedingsmail (§13.2): SMTP; een Graph-mailer voor Microsoft 365 volgt (D40).
-        $this->app->bind(OutboundMailer::class, SmtpOutboundMailer::class);
+        // Uitgaande aanbiedingsmail (§13.2): Microsoft 365 (Graph) of SMTP, volgens Instellingen → Mail.
+        $this->app->bind(OutboundMailer::class, fn (): OutboundMailer => app(MailSettings::class)->provider === 'graph'
+            ? app(MicrosoftGraphMailer::class)
+            : app(SmtpOutboundMailer::class));
         $this->app->bind(Geocoder::class, fn (): Geocoder => new PdokGeocoder((string) config('phpzoeker.pdok_url')));
         $this->app->bind(PdfConverter::class, function (): PdfConverter {
             $gotenberg = new GotenbergPdfConverter((string) config('phpzoeker.gotenberg_url'));

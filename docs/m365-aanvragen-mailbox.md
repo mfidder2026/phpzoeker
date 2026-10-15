@@ -58,3 +58,21 @@ bijvoorbeeld voor "Laravel", "PHP developer", "Python developer" en "full stack 
 - LinkedIn Jobs: job alerts (de app scrapet LinkedIn zelf niet, regel R3);
 - Striive, Freelance.nl, Hoofdkraan, IT-contracts, Indeed;
 - intermediairs als HeadFirst, Yacht en Brainnet.
+
+## Aanbiedingen versturen via Microsoft 365
+
+Aanbiedingsmails, opvolgmails en akkoordverzoeken kunnen vanuit de afzendermailbox van Fremen worden verstuurd
+(bijvoorbeeld michel@fremen.app of sales@fremen.app). De mail staat daarna in **Verzonden items** van die mailbox, en
+een opvolgmail komt als antwoord in dezelfde conversatie.
+
+1. Ga naar **Instellingen → Mail**, kies bij *Mailprovider* **Microsoft 365 (Graph)**, vul de afzendermailbox in en klik
+   **Opslaan**.
+2. Klik rechtsboven op **Inloggen bij Microsoft**, vul de code in op de inlogpagina van Microsoft en log in met het
+   account van de afzendermailbox. Voor een gedeelde mailbox (zoals sales@fremen.app): log in met een account dat
+   **Verzenden als** heeft op die mailbox.
+3. Microsoft vraagt toestemming om mail te versturen (`Mail.Send`, `Mail.Send.Shared`) en concepten te maken
+   (`Mail.ReadWrite.Shared`). Klik **Accepteren**.
+4. Klik **Testmail sturen**: je krijgt een testmail op je eigen adres, verstuurd vanuit de afzendermailbox.
+
+PHP Zoeker verstuurt alleen mails die een mens heeft goedgekeurd (R1). Het vernieuwingstoken staat versleuteld in de
+database en komt nooit in de browser. **Verbinding verbreken** op dezelfde pagina zet de koppeling uit.

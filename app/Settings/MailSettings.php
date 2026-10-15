@@ -34,6 +34,24 @@ class MailSettings extends Settings
     /** Ook het DOCX van het CV standaard meesturen. */
     public bool $attach_docx;
 
+    /** Vernieuwingstoken van de Microsoft 365-login voor verzenden (versleuteld, nooit naar de browser). */
+    public ?string $graph_refresh_token;
+
+    public ?string $graph_tenant;
+
+    /** Account waarmee is ingelogd voor verzenden. */
+    public ?string $graph_account;
+
+    public ?string $graph_connected_at;
+
+    /**
+     * @return list<string>
+     */
+    public static function encrypted(): array
+    {
+        return ['graph_refresh_token'];
+    }
+
     public static function group(): string
     {
         return 'mail';
