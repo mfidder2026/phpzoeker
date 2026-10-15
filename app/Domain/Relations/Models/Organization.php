@@ -2,14 +2,17 @@
 
 namespace App\Domain\Relations\Models;
 
+use App\Domain\Offers\Models\Offer;
 use App\Domain\Relations\Enums\OrganizationType;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 /**
- * Opdrachtgever, intermediair of platform (§11.9). In fase 2 aangemaakt of herkend bij
- * extractie; het volledige relatiebeheer volgt in fase 4.
+ * Opdrachtgever, intermediair of platform (§11.9). Wordt aangemaakt of herkend bij extractie en
+ * beheerd onder Relaties.
  *
  * @property int $id
  * @property string $name
@@ -18,7 +21,15 @@ use Illuminate\Support\Str;
  * @property string|null $website
  * @property list<string>|null $email_domains
  * @property int|null $default_response_term_days
+ * @property string|null $measured_avg_response_days
+ * @property int $measured_sample_size
+ * @property string|null $supplier_status
+ * @property string|null $preferred_channel
+ * @property string|null $notes
  * @property int|null $merged_into_id
+ * @property array<string, mixed>|null $research
+ * @property Carbon|null $researched_at
+ * @property-read Organization|null $mergedInto
  */
 class Organization extends Model
 {
@@ -29,6 +40,11 @@ class Organization extends Model
         return [
             'type' => OrganizationType::class,
             'email_domains' => 'array',
+            'default_response_term_days' => 'integer',
+            'measured_avg_response_days' => 'decimal:1',
+            'measured_sample_size' => 'integer',
+            'research' => 'array',
+            'researched_at' => 'datetime',
         ];
     }
 
@@ -56,5 +72,21 @@ class Organization extends Model
     public function contacts(): HasMany
     {
         return $this->hasMany(Contact::class);
+    }
+
+    /**
+     * @return HasMany<Offer, $this>
+     */
+    public function offers(): HasMany
+    {
+        return $this->hasMany(Offer::class);
+    }
+
+    /**
+     * @return BelongsTo<Organization, $this>
+     */
+    public function mergedInto(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class, 'merged_into_id');
     }
 }

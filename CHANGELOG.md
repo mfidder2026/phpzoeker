@@ -1,5 +1,20 @@
 # Changelog
 
+## [Fase 4 — aanbieden, CV, mail en aanbiedingsregister] — 15-10-2026
+
+### Toegevoegd
+- **Aanbieden-wizard** (§11.2) vanaf een match: 1 controle (route, kanaal, tarief, privacy-opties CV, waarschuwingen), 2 CV, 3 mail, 4 versturen. Statusmachine met alle overgangen uit §11.1; elke overgang in de tijdlijn en het audit-log.
+- **Blokkade op dubbele aanbiedingen** (R7): één actieve aanbieding per kandidaat en dedupe-groep, afgedwongen door een partiële unieke index; melding "… is al aangeboden via … op …" met link. Waarschuwing bij een vergelijkbare aanbieding bij dezelfde eindklant (90 dagen).
+- **CV herschrijven** (`CvTailor`, prompt `cv-tailor.v1`) met voortgangspaneel, optioneel **website-onderzoek** (`WebResearcher`), **grounding-check** (vaste velden terugzetten, deterministische checks en `CvGroundingJudge`); goedkeuren pas als alles groen is. Verschilweergave met het master-profiel, bewerken per sectie (nieuwe versie), Word en PDF in de Fremen-template; PDF via Word op Windows of Gotenberg.
+- **Aanbiedingsmail**: `OfferMailWriter` schrijft alleen introductie en bullets; onderwerp, aanhef, beschikbaarheid (met afwezigheden in de looptijd), tarief, woonplaats en handtekening komen uit data en Blade. Ontvangers alleen uit gevalideerde bronnen of handmatig bevestigd (R5), standaard-CC Mark en Michel, BCC-archief. Goedkeuren, versturen met bevestiging, idempotent en nooit zonder menselijke goedkeuring (R1).
+- **Akkoord van de kandidaat** met een signed link (72 uur) of mondeling; **platformindiening** met indieningspakket (CV, motivatie, antwoorden per eis), alleen een interne mail aan Mark en Michel, en "verzonden" pas na het externe referentienummer.
+- **Aanbiedingsregister** (§11.5): overzicht met kengetallen, snelfilters en alle filters uit FR-AR2, export naar CSV (Excel), detail met *Overzicht*, *Zo zag de aanbieding eruit*, *Tijdlijn*, *Opdracht (toen)* en *Notities*; acties status wijzigen (met afwijzingsreden), opvolgmail, notitie, reactietermijn aanpassen, reactie en intake vastleggen, intrekken.
+- **Snapshot** bij verzending (§11.7): mail met kopregels, HTML, tekst en .eml, kopie van de bijlagen, aanbiedingsgegevens, eisen-matrix, opdracht van toen en herkomst; SHA-256 en badge "Ongewijzigd sinds verzending"; database-trigger tegen wijzigen; afgeschermde weergave (sandbox, CSP); downloads via signed URL.
+- **Verwachte reactie** in werkdagen met Nederlandse feestdagen (termijn van de aanbieding, relatie, bron of globaal; later van verzending en deadline; 17:00), indicator groen/oranje/rood, menubadge, elk uur een melding bij een verlopen reactie aan de aanbieder en Michel, opvolgmail in dezelfde conversatie en een nieuwe verwachte reactie (+3 werkdagen). Voorstel "geen reactie" na 2 opvolgingen en 10 werkdagen.
+- **Handmatig registreren** (§11.8) met import van een .eml (kopregels, datum en bijlagen) en upload van het CV; minimale opdracht in één stap.
+- **Relaties** (§11.9): organisaties met contactpersonen, standaard en gemeten reactietijd (nachtelijk berekend, voorstel bij > 2 werkdagen verschil), alle aanbiedingen per relatie, samenvoegen.
+- Shortlist-kanban toont nu ook de aanbiedingen; dashboard met aanbiedingen deze week en reacties verlopen; opdracht-detail toont "… is al aangeboden via …".
+- 34 nieuwe tests (214 totaal).
 ## [Fase 3 — matching en meldingen] — 15-10-2026
 
 ### Toegevoegd

@@ -4,8 +4,12 @@ namespace App\Filament\Resources\Matches;
 
 use App\Domain\Assignments\Enums\AssignmentStatus;
 use App\Domain\Matching\Enums\MatchStatus;
+use App\Domain\Matching\Enums\Recommendation;
 use App\Domain\Matching\Jobs\MatchAssignmentJob;
 use App\Domain\Matching\Models\CandidateMatch;
+use App\Domain\Offers\Actions\CreateOffer;
+use App\Domain\Offers\Exceptions\DuplicateOfferException;
+use App\Filament\Resources\Offers\OfferResource;
 use App\Filament\Support\Access;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
@@ -203,9 +207,28 @@ final class MatchActions
         return Action::make('offer')
             ->label('Aanbieden')
             ->icon(Heroicon::OutlinedPaperAirplane)
-            ->disabled()
-            ->tooltip('De aanbiedingswizard volgt in fase 4')
-            ->visible(fn (): bool => Access::isStaff());
+            ->visible(fn (): bool => Access::isStaff())
+            ->disabled(fn (CandidateMatch $record): bool => ! $record->hard_filter_passed || $record->candidate->active_profile_id === null)
+            ->tooltip(fn (CandidateMatch $record): ?string => ! $record->hard_filter_passed ? 'Een harde filter is niet gehaald.' : ($record->candidate->active_profile_id === null ? 'Geen goedgekeurd master-profiel.' : null))
+            ->requiresConfirmation(fn (CandidateMatch $record): bool => $record->isKnockoutBlocking() || $record->recommendation === Recommendation::NietAanbieden)
+            ->modalDescription('Het advies is "niet aanbieden" of een knock-out-eis is niet gehaald. Weet je zeker dat je toch wilt aanbieden?')
+            ->action(function (CandidateMatch $record): void {
+                try {
+                    $offer = app(CreateOffer::class)->handle($record->assignment, $record->candidate, Access::user(), $record);
+                } catch (DuplicateOfferException $exception) {
+                    $notification = Notification::make()->danger()->title($exception->getMessage());
+
+                    if ($exception->existing !== null) {
+                        $notification->actions([Action::make('bekijken')->label('Bestaande aanbieding')->url(OfferResource::getUrl('view', ['record' => $exception->existing]))]);
+                    }
+
+                    $notification->send();
+
+                    return;
+                }
+
+                redirect(OfferResource::getUrl('wizard', ['record' => $offer]));
+            });
     }
 
     public static function toShortlist(CandidateMatch $match): void

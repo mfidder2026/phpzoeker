@@ -28,6 +28,12 @@ class MailSettings extends Settings
 
     public string $alerts_mailbox;
 
+    /** Maximale totale grootte van de bijlagen (§13.4). */
+    public int $max_attachments_mb;
+
+    /** Ook het DOCX van het CV standaard meesturen. */
+    public bool $attach_docx;
+
     public static function group(): string
     {
         return 'mail';

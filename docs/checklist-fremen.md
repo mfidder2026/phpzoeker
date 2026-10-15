@@ -35,3 +35,11 @@ De app leest het gedeelde postvak **aanvragen@fremen.app** (Microsoft 365). Stap
 - [ ] **Instellingen → Matching**: gewichten, drempels en technologie-aliassen nalopen.
 - [ ] Prijzen per 1 mln. tokens invullen in **Instellingen → AI-agent**, anders werkt de budgetbewaking met € 0.
 - [ ] De eerste weken matches beoordelen met 👍/👎; daarmee worden de gewichten bijgesteld.
+
+## Aanbieden (fase 4)
+- [ ] **Afzender**: de mail gaat nu via de test-Gmail uit `.env`. Kies hoe Fremen verstuurt: SMTP van fremen.app, of verzenden via Microsoft 365 (dan bouw ik de Graph-mailer met een eenmalige login, zoals bij de aanvragen-mailbox).
+- [ ] **Instellingen → Mail**: afzendermailbox, naam en handtekening (HTML en tekst) invullen; standaard-CC controleren (nu mark@fremen.app en michel@fremen.app).
+- [ ] **Instellingen → CV**: Fremen-contact (naam, e-mail, telefoon) voor de contactregel in het CV.
+- [ ] **Relaties**: website en standaard reactietermijn per vaste intermediair (bijv. HeadFirst) invullen.
+- [ ] Akkoord geven op een bibliotheek voor Outlook-**.msg** (nu alleen .eml).
+- [ ] De eerste aanbieding samen doorlopen: CV-review, grounding-rapport en mail controleren vóór verzending.

@@ -4,8 +4,8 @@ Opdrachtenradar en aanbiedingsassistent voor Fremen-developers. Eén Filament-we
 (Laravel 13, Filament 5). Het ontwerp staat lokaal in `docs/ontwerp/` (niet in git: bevat persoonsgegevens); beslissingen in
 [`docs/DECISIONS.md`](docs/DECISIONS.md); wat er per fase is opgeleverd in [`CHANGELOG.md`](CHANGELOG.md).
 
-**Stand:** fase 0–3 zijn gebouwd: fundering, webapp met AI-agent en master-CV's, ingest van opdrachten, en matching
-met meldingen. Aanbiedingen (fase 4) en rapportages (fase 5) staan al als "Volgt in fase x" in het menu.
+**Stand:** fase 0–4 zijn gebouwd: fundering, webapp met AI-agent en master-CV's, ingest van opdrachten, matching met
+meldingen, en aanbieden met CV, mail en aanbiedingsregister. Rapportages (fase 5) staan als "Volgt in fase 5" in het menu.
 
 ## Lokaal starten (zonder Docker)
 
@@ -67,6 +67,13 @@ Kwaliteit van de matching meten (kost tokens; de door Fremen gelabelde set hoort
 ```bash
 php artisan eval:matching --map=senior=mark-van-der-zande --map=medior=sten-nierop
 ```
+
+## Aanbieden
+
+Vanuit een match: **Aanbieden** opent de wizard (controle → CV → mail → versturen). Het CV en de mail worden pas
+verstuurd na goedkeuring door een mens; de grounding-check moet groen zijn. Na verzending staat de aanbieding in het
+**Aanbiedingsregister** met een vaste snapshot. Aanbiedingen buiten de app leg je vast met **Handmatig registreren**
+(.eml uploaden). De PDF van het CV maakt de app via Microsoft Word (Windows) of Gotenberg (`PDF_CONVERTER`).
 
 ## Kwaliteit
 
