@@ -1,0 +1,99 @@
+# PHP Zoeker — ontwikkel- en productieomgeving (fase 0, §16.1).
+# Start: docker compose up -d   ·   App: http://localhost:8000   ·   Mailpit: http://localhost:8025
+services:
+  app:
+    build: .
+    image: phpzoeker-app
+    env_file: .env
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: pgsql
+      DB_PORT: 5432
+      DB_DATABASE: phpzoeker
+      DB_USERNAME: phpzoeker
+      DB_PASSWORD: ${DB_PASSWORD:-phpzoeker}
+      QUEUE_CONNECTION: redis
+      CACHE_STORE: redis
+      REDIS_HOST: redis
+      REDIS_CLIENT: phpredis
+      GOTENBERG_URL: http://gotenberg:3000
+    command: php artisan serve --host=0.0.0.0 --port=8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - storage:/var/www/html/storage/app
+    depends_on:
+      pgsql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  worker:
+    image: phpzoeker-app
+    env_file: .env
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: pgsql
+      DB_DATABASE: phpzoeker
+      DB_USERNAME: phpzoeker
+      DB_PASSWORD: ${DB_PASSWORD:-phpzoeker}
+      QUEUE_CONNECTION: redis
+      CACHE_STORE: redis
+      REDIS_HOST: redis
+      GOTENBERG_URL: http://gotenberg:3000
+    # Aparte queues: ingest, ai, matching, documents, mail (§16.4). Later: Horizon.
+    command: php artisan queue:work --queue=ai,ingest,matching,documents,mail,default --tries=3 --timeout=900
+    volumes:
+      - storage:/var/www/html/storage/app
+    depends_on:
+      - app
+
+  scheduler:
+    image: phpzoeker-app
+    env_file: .env
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: pgsql
+      DB_DATABASE: phpzoeker
+      DB_USERNAME: phpzoeker
+      DB_PASSWORD: ${DB_PASSWORD:-phpzoeker}
+      QUEUE_CONNECTION: redis
+      REDIS_HOST: redis
+    command: php artisan schedule:work
+    depends_on:
+      - app
+
+  pgsql:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: phpzoeker
+      POSTGRES_USER: phpzoeker
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-phpzoeker}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgsql:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U phpzoeker"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  gotenberg:
+    image: gotenberg/gotenberg:8
+    ports:
+      - "3000:3000"
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+volumes:
+  pgsql:
+  storage:
