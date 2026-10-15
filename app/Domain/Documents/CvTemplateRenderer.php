@@ -19,11 +19,40 @@ class CvTemplateRenderer
     /** Pasfoto zoals in het bron-CV: 4,04 × 4,04 cm. */
     private const PHOTO_PIXELS = 153;
 
+    /** Taal van het CV dat wordt gemaakt (nl of en). */
+    private string $language = 'nl';
+
     public function __construct(private readonly CvSettings $settings) {}
 
+    /**
+     * Template per taal; zonder Engelse template wordt de Nederlandse gebruikt met Engelse koppen
+     * en vaste teksten (§12.5).
+     */
     public static function templatePath(string $language = 'nl'): string
     {
-        return resource_path("templates/cv/fremen-cv-{$language}.docx");
+        $path = resource_path("templates/cv/fremen-cv-{$language}.docx");
+
+        return is_file($path) || $language === 'nl' ? $path : resource_path('templates/cv/fremen-cv-nl.docx');
+    }
+
+    /**
+     * Vaste teksten in het CV per taal.
+     *
+     * @return array<string, string>
+     */
+    public static function labels(string $language): array
+    {
+        return $language === 'en' ? [
+            'profile' => 'PROFESSIONAL PROFILE', 'expertise' => 'CORE EXPERTISE', 'experience' => 'WORK EXPERIENCE', 'projects' => 'SELECTED PROJECTS',
+            'education' => 'Education & certificates', 'earlier' => 'Earlier work experience', 'languages' => 'Languages & additional skills',
+            'contact' => 'Contact via Fremen', 'license' => 'Driving licence B', 'own_car' => ' / own car', 'available' => 'Available', 'from' => 'from',
+            'hours' => 'hours per week', 'birth' => 'Date of birth', 'nationality' => 'Nationality', 'via' => 'Via', 'technology' => 'Technology: ',
+        ] : [
+            'profile' => 'PROFESSIONEEL PROFIEL', 'expertise' => 'KERNEXPERTISE', 'experience' => 'WERKERVARING', 'projects' => 'GESELECTEERDE PROJECTEN',
+            'education' => 'Opleidingen & certificaten', 'earlier' => 'Eerdere werkervaring', 'languages' => 'Talen & aanvullende vaardigheden',
+            'contact' => 'Contact via Fremen', 'license' => 'Rijbewijs B', 'own_car' => ' / eigen auto', 'available' => 'Beschikbaar', 'from' => 'vanaf',
+            'hours' => 'uur per week', 'birth' => 'Geboortedatum', 'nationality' => 'Nationaliteit', 'via' => 'Via', 'technology' => 'Technologie: ',
+        ];
     }
 
     /**
@@ -44,6 +73,8 @@ class CvTemplateRenderer
     public function render(Candidate $candidate, array $profile, string $outputPath, array $options = [], string $language = 'nl'): string
     {
         $template = self::templatePath($language);
+        $this->language = $language;
+        $labels = self::labels($language);
 
         if (! is_file($template)) {
             throw new RuntimeException("CV-template ontbreekt: {$template}. Draai `php artisan cv:build-template <bron-cv.docx>`.");
@@ -61,13 +92,13 @@ class CvTemplateRenderer
             'tagline' => (string) ($profile['tagline'] ?? ''),
             'contactregel' => $this->contactLine($candidate, $options),
             'extra_regel' => $this->extraLine($candidate, $options),
-            'kop_profiel' => 'PROFESSIONEEL PROFIEL',
-            'kop_kernexpertise' => 'KERNEXPERTISE',
-            'kop_werkervaring' => 'WERKERVARING',
-            'kop_projecten' => 'GESELECTEERDE PROJECTEN',
-            'kop_opleidingen' => $upper($headings['opleidingen'] ?? null, 'Opleidingen & certificaten'),
-            'kop_eerdere_ervaring' => $upper($headings['eerdere_ervaring'] ?? null, 'Eerdere werkervaring'),
-            'kop_talen' => $upper($headings['talen'] ?? null, 'Talen & aanvullende vaardigheden'),
+            'kop_profiel' => $labels['profile'],
+            'kop_kernexpertise' => $labels['expertise'],
+            'kop_werkervaring' => $labels['experience'],
+            'kop_projecten' => $labels['projects'],
+            'kop_opleidingen' => $upper($headings['opleidingen'] ?? null, $labels['education']),
+            'kop_eerdere_ervaring' => $upper($headings['eerdere_ervaring'] ?? null, $labels['earlier']),
+            'kop_talen' => $upper($headings['talen'] ?? null, $labels['languages']),
             'voetregel' => (string) ($options['footer'] ?? ($profile['voetregel'] ?? null) ?? $this->settings->footer_text),
         ]);
 
@@ -88,6 +119,10 @@ class CvTemplateRenderer
 
         $processor->saveAs($outputPath);
 
+        if ($language === 'en' && ! is_file(resource_path('templates/cv/fremen-cv-en.docx'))) {
+            self::translateFixedTexts($outputPath);
+        }
+
         return $outputPath;
     }
 
@@ -106,13 +141,13 @@ class CvTemplateRenderer
             $parts[] = (string) $candidate->phone;
             $parts[] = (string) $candidate->email;
         } else {
-            $parts[] = 'Contact via Fremen: '.trim($this->settings->fremen_contact_name.' · '.$this->settings->fremen_contact_email.' '.$this->settings->fremen_contact_phone);
+            $parts[] = self::labels($this->language)['contact'].': '.trim($this->settings->fremen_contact_name.' · '.$this->settings->fremen_contact_email.' '.$this->settings->fremen_contact_phone);
         }
 
         $showLicense = $options['show_driving_license'] ?? ($this->settings->show_driving_license === 'always');
 
         if ($showLicense && $candidate->driving_license) {
-            $parts[] = 'Rijbewijs B'.($candidate->own_transport ? ' / eigen auto' : '');
+            $parts[] = self::labels($this->language)['license'].($candidate->own_transport ? self::labels($this->language)['own_car'] : '');
         }
 
         return implode(' | ', array_filter($parts, fn (string $part): bool => trim($part) !== ''));
@@ -128,15 +163,16 @@ class CvTemplateRenderer
         $parts = [];
 
         if (($options['show_nationality'] ?? false) && filled($candidate->nationality)) {
-            $parts[] = self::nationality((string) $candidate->nationality);
+            $parts[] = $this->language === 'en' ? 'Nationality: '.$candidate->nationality : self::nationality((string) $candidate->nationality);
         }
 
         if ($options['show_availability'] ?? true) {
-            $parts[] = 'Beschikbaar: '.($candidate->isAvailableImmediately() ? '' : 'vanaf '.$candidate->available_from?->format('d-m-Y').', ').$candidate->hours_per_week.' uur per week';
+            $labels = self::labels($this->language);
+            $parts[] = $labels['available'].': '.($candidate->isAvailableImmediately() ? '' : $labels['from'].' '.$candidate->available_from?->format('d-m-Y').', ').$candidate->hours_per_week.' '.$labels['hours'];
         }
 
         if (($options['show_birth_date'] ?? $this->settings->show_birth_date) && filled($candidate->birth_date)) {
-            $parts[] = 'Geboortedatum: '.Carbon::parse($candidate->birth_date)->format('d-m-Y');
+            $parts[] = self::labels($this->language)['birth'].': '.Carbon::parse($candidate->birth_date)->format('d-m-Y');
         }
 
         return implode(' | ', $parts);
@@ -221,7 +257,7 @@ class CvTemplateRenderer
 
         foreach ($entries as $index => $entry) {
             $i = $index + 1;
-            $subtitle = filled($entry['subtitel'] ?? null) ? (string) $entry['subtitel'] : (filled($entry['via'] ?? null) ? 'Via '.$entry['via'] : '');
+            $subtitle = filled($entry['subtitel'] ?? null) ? (string) $entry['subtitel'] : (filled($entry['via'] ?? null) ? self::labels($this->language)['via'].' '.$entry['via'] : '');
 
             $processor->setValue("we_periode#{$i}", self::period((string) $entry['van'], (string) $entry['tot']));
             $processor->setValue("we_functie#{$i}", (string) $entry['functie']);
@@ -248,7 +284,7 @@ class CvTemplateRenderer
                 'pr_naam' => (string) $project['naam'],
                 'pr_suffix' => $suffix === [] ? '' : '  ·  '.implode('  ·  ', $suffix),
                 'pr_omschrijving' => (string) ($project['omschrijving'] ?? ''),
-                'pr_tech_label' => $technologies === [] ? '' : 'Technologie: ',
+                'pr_tech_label' => $technologies === [] ? '' : self::labels($this->language)['technology'],
                 'pr_technologie' => implode(' · ', $technologies),
             ];
         }, $projects)));
@@ -379,5 +415,28 @@ class CvTemplateRenderer
         $format = fn (string $value): string => preg_match('/^(\d{4})-(\d{2})$/', $value, $m) === 1 ? $m[2].'-'.$m[1] : $value;
 
         return $format($from).' – '.$format($to);
+    }
+
+    /**
+     * Vaste teksten in de Nederlandse template die geen placeholder zijn, voor een Engels CV.
+     */
+    private static function translateFixedTexts(string $docx): void
+    {
+        $zip = new \ZipArchive;
+
+        if ($zip->open($docx) !== true) {
+            return;
+        }
+
+        for ($index = 0; $index < $zip->numFiles; $index++) {
+            $name = (string) $zip->getNameIndex($index);
+
+            if (preg_match('#^word/(document|footer\d*|header\d*)\.xml$#', $name) === 1) {
+                $xml = (string) $zip->getFromName($name);
+                $zip->addFromString($name, str_replace(['AANSLUITING OP DE OPDRACHT', '>Pagina '], ['FIT WITH THE ASSIGNMENT', '>Page '], $xml));
+            }
+        }
+
+        $zip->close();
     }
 }

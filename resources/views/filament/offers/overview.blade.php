@@ -24,6 +24,15 @@
     ];
 @endphp
 
+@php($suggestion = \App\Domain\Offers\Actions\TrackReplies::pendingSuggestion($record))
+@if ($suggestion)
+    <div class="pz-alert pz-alert--warning" style="margin-top:0;margin-bottom:1rem">
+        <strong>Reactie ontvangen</strong> van {{ $suggestion['from'] }} op {{ $suggestion['occurred_at']->setTimezone($tz)->format('d-m-Y H:i') }}: “{{ $suggestion['subject'] }}”<br>
+        <span class="pz-person__meta">{{ $suggestion['preview'] }}</span><br>
+        Voorstel: zet de status op <em>Reactie ontvangen</em> (knop “Reactie ontvangen” rechtsboven) of leg een intake vast.
+    </div>
+@endif
+
 <div class="pz-grid-2 pz-match">
     <div class="pz-card">
         <dl class="pz-dl">

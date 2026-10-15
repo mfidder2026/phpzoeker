@@ -79,12 +79,20 @@ class AiAgentProfile extends Model
                 $profile->api_key_last4 = $key === '' ? null : mb_substr($key, -4);
             }
 
+            if ($profile->is_active && $profile->is_fallback) {
+                throw new \DomainException('Een profiel is óf actief óf fallback, niet allebei.');
+            }
+
             if ($profile->is_active && $profile->dpa_confirmed_at === null) {
                 throw new \DomainException('Een AI-agentprofiel kan pas actief worden als de verwerkersovereenkomst is bevestigd.');
             }
         });
 
         static::saved(function (AiAgentProfile $profile): void {
+            if ($profile->is_fallback) {
+                static::query()->whereKeyNot($profile->getKey())->where('is_fallback', true)->update(['is_fallback' => false]);
+            }
+
             if ($profile->is_active) {
                 static::query()->whereKeyNot($profile->getKey())->where('is_active', true)->update(['is_active' => false]);
             }
@@ -112,6 +120,18 @@ class AiAgentProfile extends Model
     public static function active(): ?self
     {
         return static::query()->where('is_active', true)->first();
+    }
+
+    /**
+     * Het fallbackprofiel (FR-AI9): een ander profiel met bevestigde verwerkersovereenkomst.
+     */
+    public static function fallbackFor(?self $primary): ?self
+    {
+        return static::query()
+            ->where('is_fallback', true)
+            ->whereNotNull('dpa_confirmed_at')
+            ->when($primary?->exists, fn ($query) => $query->whereKeyNot($primary?->getKey()))
+            ->first();
     }
 
     public function maskedApiKey(): string

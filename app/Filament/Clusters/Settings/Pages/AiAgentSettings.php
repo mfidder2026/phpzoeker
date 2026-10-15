@@ -115,6 +115,7 @@ class AiAgentSettings extends Page
             'web_test_url' => $profile->web_test_url,
             'dpa_confirmed' => $profile->dpa_confirmed_at !== null,
             'is_active' => $profile->is_active,
+            'is_fallback' => $profile->is_fallback,
         ];
     }
 
@@ -186,6 +187,9 @@ class AiAgentSettings extends Page
                     Toggle::make('is_active')->label('Actief profiel')
                         ->disabled(fn (Get $get): bool => ! $get('dpa_confirmed'))
                         ->helperText('Precies één profiel is actief.'),
+                    Toggle::make('is_fallback')->label('Fallbackprofiel')
+                        ->disabled(fn (Get $get): bool => ! $get('dpa_confirmed') || (bool) $get('is_active'))
+                        ->helperText('Wordt gebruikt als de provider van het actieve profiel niet bereikbaar of overbelast is (FR-AI9).'),
                 ]),
                 Section::make('Laatste verbindingstest')->schema([
                     View::make('filament.ai.last-test-result')->viewData(['profile' => $profile]),
@@ -210,7 +214,32 @@ class AiAgentSettings extends Page
 
     protected function getHeaderActions(): array
     {
-        return [$this->testConnectionAction()];
+        return [
+            $this->testConnectionAction(),
+            Action::make('switchProfile')
+                ->label('Ander profiel')
+                ->icon(Heroicon::OutlinedArrowsRightLeft)
+                ->color('gray')
+                ->schema([
+                    Select::make('profile')->label('Profiel')->required()
+                        ->options(fn (): array => AiAgentProfile::query()->orderByDesc('is_active')->orderBy('name')->get()
+                            ->mapWithKeys(fn (AiAgentProfile $profile): array => [$profile->id => $profile->name.($profile->is_active ? ' (actief)' : ($profile->is_fallback ? ' (fallback)' : ''))])->all())
+                        ->placeholder('Nieuw profiel'),
+                ])
+                ->action(function (array $data): void {
+                    $profile = filled($data['profile'] ?? null) ? AiAgentProfile::query()->find((int) $data['profile']) : null;
+                    $this->profileId = $profile?->id;
+                    $this->form->fill($profile !== null ? self::toFormState($profile) : ['name' => 'Fallback', 'timeout_seconds' => 120, 'max_concurrency' => 3, 'daily_budget_eur' => 10]);
+                }),
+            Action::make('newProfile')
+                ->label('Nieuw profiel')
+                ->icon(Heroicon::OutlinedPlus)
+                ->color('gray')
+                ->action(function (): void {
+                    $this->profileId = null;
+                    $this->form->fill(['name' => 'Fallback', 'provider' => ProviderName::Anthropic->value, 'timeout_seconds' => 120, 'max_concurrency' => 3, 'daily_budget_eur' => 10]);
+                }),
+        ];
     }
 
     public function testConnectionAction(): Action
@@ -237,6 +266,7 @@ class AiAgentSettings extends Page
             ? ($profile->dpa_confirmed_at ?? now())
             : null;
         $attributes['is_active'] = ($state['dpa_confirmed'] ?? false) && ($state['is_active'] ?? false);
+        $attributes['is_fallback'] = ($state['dpa_confirmed'] ?? false) && ($state['is_fallback'] ?? false) && ! $attributes['is_active'];
         $attributes['updated_by'] = Access::user()?->id;
 
         $profile->fill($attributes)->save();

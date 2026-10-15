@@ -3,14 +3,17 @@
 namespace App\Filament\Clusters\Settings\Pages;
 
 use App\Domain\Matching\Jobs\RescoreMatchesJob;
+use App\Domain\Matching\Support\WeightAdvisor;
 use App\Settings\MatchingSettings;
 use BackedEnum;
 use Closure;
+use Filament\Actions\Action;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 
@@ -40,6 +43,26 @@ class MatchingSettingsPage extends BaseSettingsPage
         'location' => 'Locatie/reistijd',
         'hours' => 'Uren/start/duur',
     ];
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('applyAdvice')
+                ->label('Voorstel overnemen')
+                ->icon(Heroicon::OutlinedLightBulb)
+                ->color('gray')
+                ->visible(fn (): bool => app(WeightAdvisor::class)->advise()['ready'])
+                ->requiresConfirmation()
+                ->modalDescription(fn (): string => 'Nieuwe gewichten: '.collect(app(WeightAdvisor::class)->advise()['components'])->map(fn (array $component): string => $component['label'].' '.$component['suggested'])->implode(', ').'. Daarna worden alle scores opnieuw berekend, zonder AI.')
+                ->action(function (): void {
+                    $settings = app(MatchingSettings::class);
+                    $settings->weights = app(WeightAdvisor::class)->suggestedWeights();
+                    $settings->save();
+                    $this->afterSave();
+                    $this->fillForm();
+                }),
+        ];
+    }
 
     /**
      * Gewichten of drempels gewijzigd → alleen scores en labels opnieuw berekenen (§10.6).
@@ -73,6 +96,9 @@ class MatchingSettingsPage extends BaseSettingsPage
                 TextInput::make('strong_threshold')->label('Drempel sterke match')->numeric()->minValue(0)->maxValue(100)->required(),
                 TextInput::make('possible_threshold')->label('Drempel mogelijke match')->numeric()->minValue(0)->maxValue(100)->required()->lt('strong_threshold'),
             ]),
+            Section::make('Voorstel op basis van feedback')->collapsed()
+                ->description('Componenten die goed onderscheiden tussen 👍 en 👎 krijgen meer gewicht. Pas toe met de knop rechtsboven.')
+                ->schema([View::make('filament.settings.weight-advice')->viewData(['advice' => app(WeightAdvisor::class)->advise()])]),
             Section::make('Gewichten (§10.3)')->description('Samen 100. Een wijziging herberekent alleen de score, zonder nieuwe AI-aanroep.')->columns(4)->schema($weightFields),
             Section::make('Filters')->columns(2)->schema([
                 TextInput::make('start_date_tolerance_days')->label('Tolerantie startdatum (dagen)')->numeric()->minValue(0)->required(),

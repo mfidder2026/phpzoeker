@@ -17,6 +17,9 @@ use App\Ai\Support\AiResponse;
  */
 class AiGateway
 {
+    /** Fouten waarbij het fallbackprofiel wordt geprobeerd (niet bij een ongeldige sleutel of verzoek). */
+    public const FALLBACK_ERRORS = ['unreachable', 'unavailable', 'timeout', 'rate_limited'];
+
     public function __construct(
         private readonly AiProviderFactory $providers,
         private readonly AiBudgetGuard $budget,
@@ -56,8 +59,7 @@ class AiGateway
             timeoutSeconds: $profile->timeout_seconds,
         );
 
-        $response = $this->providers->make($profile)->chat($request);
-        $run->recordUsage($response);
+        $response = $this->send($run, $task, $profile, $request);
         $this->budget->notifyThresholds($profile);
 
         return $response;
@@ -110,8 +112,7 @@ class AiGateway
             timeoutSeconds: $profile->timeout_seconds,
         )->withExtraUserMessage($response->text, "Je antwoord is ongeldig: {$error}\nGeef opnieuw alleen het JSON-object, gecorrigeerd volgens het schema.");
 
-        $retry = $this->providers->make($profile)->chat($retryRequest);
-        $run->recordUsage($retry);
+        $retry = $this->send($run, $task, $profile, $retryRequest);
         $this->budget->notifyThresholds($profile);
 
         $data = $retry->json();
@@ -122,6 +123,44 @@ class AiGateway
         }
 
         return $data;
+    }
+
+    /**
+     * Aanroep bij de provider; is die niet bereikbaar of overbelast en is er een fallbackprofiel
+     * (FR-AI9), dan gaat dezelfde vraag naar dat profiel, met het model dat daar voor de taak staat.
+     *
+     * @throws AiProviderException
+     */
+    private function send(TrackedRun $run, AiTask $task, AiAgentProfile $profile, AiRequest $request): AiResponse
+    {
+        try {
+            $response = $this->providers->make($profile)->chat($request);
+            $run->recordUsage($response);
+
+            return $response;
+        } catch (AiProviderException $exception) {
+            // Een verbindingstest test het profiel zelf; daar geen fallback.
+            $fallback = $task !== AiTask::ConnectionTest && in_array($exception->errorCode, self::FALLBACK_ERRORS, true) ? AiAgentProfile::fallbackFor($profile) : null;
+
+            if ($fallback === null || $fallback->modelFor($task) === '') {
+                throw $exception;
+            }
+
+            $run->detail('Fallbackprofiel: '.$fallback->name.' ('.$exception->getMessage().')');
+            $response = $this->providers->make($fallback)->chat(new AiRequest(
+                model: $fallback->modelFor($task),
+                system: $request->system,
+                messages: $request->messages,
+                schema: $request->schema,
+                maxOutputTokens: $request->maxOutputTokens,
+                timeoutSeconds: $fallback->timeout_seconds,
+                temperature: $request->temperature,
+            ));
+            $run->recordUsage($response, $fallback);
+            $run->detail(null);
+
+            return $response;
+        }
     }
 
     private function profileFor(TrackedRun $run): AiAgentProfile

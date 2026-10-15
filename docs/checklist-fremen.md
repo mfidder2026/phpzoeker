@@ -43,3 +43,10 @@ De app leest het gedeelde postvak **aanvragen@fremen.app** (Microsoft 365). Stap
 - [ ] **Relaties**: website en standaard reactietermijn per vaste intermediair (bijv. HeadFirst) invullen.
 - [ ] Akkoord geven op een bibliotheek voor Outlook-**.msg** (nu alleen .eml).
 - [ ] De eerste aanbieding samen doorlopen: CV-review, grounding-rapport en mail controleren vóór verzending.
+
+## Rapportage en verbeteren (fase 5)
+- [ ] **Eerdere aanbiedingen** in het register zetten: spreadsheet in het formaat van `docs/voorbeeld-aanbiedingen.csv`, dan **Aanbiedingsregister → Importeren**.
+- [ ] **Teams** (optioneel): in Teams een Workflows-webhook voor het kanaal maken en de URL invullen in **Instellingen → Meldingen**.
+- [ ] **Fallbackprofiel** (optioneel): in **Instellingen → AI-agent → Nieuw profiel** een tweede provider instellen, verwerkersovereenkomst bevestigen en "Fallbackprofiel" aanzetten.
+- [ ] **Bewaartermijnen** nalopen in **Instellingen → Privacy** (de opschoning draait elke nacht).
+- [ ] Na een paar weken: **Rapportages → Gemiste kansen** en het **gewichtsvoorstel** in Instellingen → Matching bekijken.

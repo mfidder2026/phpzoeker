@@ -52,8 +52,10 @@ final class Workdays
             return 0.0;
         }
 
-        $date = CarbonImmutable::parse($from->format('Y-m-d'), $from->getTimezone());
-        $end = CarbonImmutable::parse($until->format('Y-m-d'), $until->getTimezone());
+        // Beide in dezelfde tijdzone, anders telt een tijdstip in UTC een dag te veel of te weinig.
+        $timezone = 'Europe/Amsterdam';
+        $date = CarbonImmutable::parse(CarbonImmutable::instance($from)->setTimezone($timezone)->format('Y-m-d'), $timezone);
+        $end = CarbonImmutable::parse(CarbonImmutable::instance($until)->setTimezone($timezone)->format('Y-m-d'), $timezone);
         $days = 0;
 
         while ($date->lessThan($end)) {

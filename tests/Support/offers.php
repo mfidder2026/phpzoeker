@@ -98,3 +98,45 @@ function sentMails(): array
 {
     return app('mailer')->getSymfonyTransport()->messages()->map(fn ($message) => $message->getOriginalMessage())->values()->all();
 }
+
+function connectSender(string $refreshToken = 'sender-refresh-secret'): void
+{
+    $settings = app(MailSettings::class);
+    $settings->provider = 'graph';
+    $settings->sender_mailbox = 'michel@fremen.app';
+    $settings->graph_refresh_token = $refreshToken;
+    $settings->graph_tenant = 'tenant-fremen';
+    $settings->graph_account = 'michel@fremen.app';
+    $settings->save();
+    app()->forgetInstance(MailSettings::class);
+}
+
+function senderIdToken(array $claims): string
+{
+    return 'x.'.rtrim(strtr(base64_encode((string) json_encode($claims)), '+/', '-_'), '=').'.y';
+}
+
+/**
+ * Nep-Graph: concept maken, bijlage, details, versturen en het MIME-bericht.
+ *
+ * @param  array<string, mixed>  $overrides  url-fragment => response
+ */
+function fakeGraph(array $overrides = []): void
+{
+    $defaults = [
+        'login.microsoftonline.com/tenant-fremen/oauth2/v2.0/token' => Http::response(['access_token' => 'graph-access', 'refresh_token' => 'sender-refresh-renewed']),
+        'graph.microsoft.com/v1.0/users/michel%40fremen.app/messages/draft-1/attachments' => Http::response(['id' => 'att-1'], 201),
+        'graph.microsoft.com/v1.0/users/michel%40fremen.app/messages/draft-1/send' => Http::response('', 202),
+        'graph.microsoft.com/v1.0/users/michel%40fremen.app/messages/draft-1/$value' => Http::response("Message-ID: <abc@eur.prod.outlook.com>\r\nSubject: Aanbieding\r\n\r\nInhoud\r\n"),
+        'graph.microsoft.com/v1.0/users/michel%40fremen.app/messages/draft-1*' => Http::response(['id' => 'draft-1', 'internetMessageId' => '<abc@eur.prod.outlook.com>', 'conversationId' => 'conv-1']),
+        'graph.microsoft.com/v1.0/users/michel%40fremen.app/messages' => Http::response(['id' => 'draft-1'], 201),
+        'ollama.test/*' => Http::sequence()
+            ->push(ollamaReply(assessmentJson()))
+            ->push(ollamaReply(tailoredCvJson()))
+            ->push(ollamaReply(groundingJson()))
+            ->push(ollamaReply(mailWriterJson())),
+    ];
+
+    // Specifieke routes eerst: het eerste patroon dat past, wint.
+    Http::fake([...$overrides, ...array_diff_key($defaults, $overrides)]);
+}

@@ -218,7 +218,8 @@ class OfferWorkflow
      */
     public function recordResponse(Offer $offer, User $user, ?string $note = null): void
     {
-        $offer->forceFill([
+        // Een reactie die reply-tracking al vond, houdt haar eigen tijdstip.
+        $offer->forceFill($offer->response_received_at !== null ? [] : [
             'response_received_at' => now(),
             'response_time_workdays' => $offer->sent_at !== null ? Workdays::between(CarbonImmutable::parse($offer->sent_at), CarbonImmutable::now()) : null,
         ])->save();

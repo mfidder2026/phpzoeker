@@ -3,7 +3,9 @@
 namespace App\Domain\Matching\Notifications;
 
 use App\Domain\Matching\Models\CandidateMatch;
+use App\Domain\Notifications\TeamsNotifier;
 use App\Enums\Role;
+use App\Filament\Resources\Matches\MatchResource;
 use App\Models\User;
 use App\Settings\NotificationSettings;
 use Illuminate\Database\Eloquent\Collection;
@@ -29,13 +31,15 @@ class MatchNotifier
     public function strongMatch(CandidateMatch $match): void
     {
         $recipients = self::accountManagers();
+        $deadline = $match->assignment->deadline_at;
+        $urgent = $deadline !== null && $deadline->isFuture() && $deadline->lessThanOrEqualTo(now()->addHours($this->settings->urgent_deadline_hours));
 
         if ($recipients->isNotEmpty()) {
-            $deadline = $match->assignment->deadline_at;
-            $urgent = $deadline !== null && $deadline->isFuture() && $deadline->lessThanOrEqualTo(now()->addHours($this->settings->urgent_deadline_hours));
-
             Notification::send($recipients, new StrongMatchNotification($match, $urgent, $this->settings->direct_mail));
         }
+
+        $notification = new StrongMatchNotification($match, $urgent, false);
+        app(TeamsNotifier::class)->send($notification->title(), $notification->body(), MatchResource::getUrl('view', ['record' => $match]), 'Match bekijken');
 
         $match->forceFill(['notified_at' => now()])->saveQuietly();
     }
