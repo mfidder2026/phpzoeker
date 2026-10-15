@@ -14,13 +14,13 @@ Handwerk dat Fremen zelf moet doen; de app ondersteunt het.
 - [ ] Bevestigen: beschikbaarheid "per direct", tarieven excl. btw, vakantie 18 t/m 31 december 2026 (§23 punten 6, 7, 12).
 - [ ] Accounts voor Mark (Kandidaat + Reviewer) en Sten (Kandidaat) aanmaken via *Gebruikers*.
 
-## Alerts-mailbox (§8.5)
-- [ ] Job alerts op **LinkedIn** instellen (bijv. "Laravel", "PHP developer", Nederland) naar de alerts-mailbox; de app scrapet LinkedIn niet (R3).
-- [ ] Gebruiksvoorwaarden van **De Publieke Partner** lezen en de ToS-check vastleggen; daarna kan de RSS-feed als bron aan (fase 2).
-- [ ] Gedeelde mailbox aanmaken, bijvoorbeeld `opdrachten@fremen.app`.
-- [ ] Op elke bron uit §8.2 alerts instellen met de zoekprofielen uit Bijlage A.
-- [ ] Per afzender een map maken of laten routeren op afzenderdomein.
-- [ ] Leesrechten voor de app op alleen deze mailbox (Microsoft 365: app-registratie met `Mail.Read`, beperkt via RBAC for Applications).
+## Aanvragen-mailbox (§8.5)
+De app leest het gedeelde postvak **aanvragen@fremen.app** (Microsoft 365). Stappen: [`docs/m365-aanvragen-mailbox.md`](m365-aanvragen-mailbox.md).
+- [ ] **Bronnen → Aanvragen-mailbox → Inloggen bij Microsoft**: één keer inloggen met een account dat toegang heeft tot aanvragen@fremen.app.
+- [ ] Test run, ToS-datum invullen en de bron aanzetten.
+- [ ] Job alerts instellen met aanvragen@fremen.app als ontvanger (LinkedIn, Striive, Freelance.nl, Hoofdkraan, IT-contracts, intermediairs).
+- [ ] **De Publieke Partner**: samenvatting van de voorwaarden staat in `docs/bronnen.md`. Besluit nemen en in **Bronnen → De Publieke Partner** de ToS-check invullen en de bron aanzetten.
+- [ ] ±20 echte job-alert-mails (geanonimiseerd) aanleveren voor de evaluatieset (`eval:extraction`).
 
 ## Mail versturen
 - [ ] Afzendermailbox kiezen (`michel@fremen.app` of `sales@fremen.app`) en de handtekening invullen in **Instellingen → Mail**.

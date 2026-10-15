@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             AiAgentProfileSeeder::class,
             CandidateSeeder::class,
+            SourceSeeder::class,
         ]);
     }
 }

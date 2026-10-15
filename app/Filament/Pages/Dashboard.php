@@ -4,7 +4,10 @@ namespace App\Filament\Pages;
 
 use App\Ai\Budget\AiBudgetGuard;
 use App\Ai\Config\AiAgentProfile;
+use App\Domain\Assignments\Models\Assignment;
 use App\Domain\Candidates\Models\Candidate;
+use App\Domain\Sources\Models\Source;
+use App\Filament\Resources\Assignments\AssignmentResource;
 use App\Filament\Resources\Candidates\CandidateResource;
 use App\Filament\Support\Access;
 use BackedEnum;
@@ -66,6 +69,11 @@ class Dashboard extends BaseDashboard
             'budget' => $budget->budget($profile),
             'aiProfile' => $profile,
             'isStaff' => Access::isStaff(),
+            'newSinceYesterday' => Assignment::query()->where('is_relevant', true)->where('created_at', '>=', now()->subDay()->startOfDay())->count(),
+            'deadlineSoon' => Assignment::query()->open()->where('is_relevant', true)->whereBetween('deadline_at', [now(), now()->addDay()])->orderBy('deadline_at')->get(),
+            'latestAssignments' => Assignment::query()->open()->where('is_relevant', true)->latest()->limit(5)->get(),
+            'sources' => Source::query()->orderByDesc('enabled')->orderBy('name')->get(),
+            'assignmentUrl' => fn (Assignment $assignment): string => AssignmentResource::getUrl('view', ['record' => $assignment]),
         ];
     }
 }

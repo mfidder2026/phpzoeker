@@ -43,6 +43,16 @@ de startwaarde bij de eerste installatie. Activeer het profiel pas nadat de verw
 gebruik **Verbinding testen**. Elke AI-aanroep loopt via de `RunTracker` en is zichtbaar in de AI-meter en op de
 pagina AI-activiteit.
 
+## Opdrachten ophalen
+
+Bronnen staan in **Beheer → Bronnen**. Een bron kan pas aan na de ToS-check. De scheduler (`php artisan schedule:work`) haalt actieve bronnen op volgens hun interval; handmatig toevoegen kan via **Opdrachten → Opdracht toevoegen** (URL of tekst).
+
+Kwaliteit van de extractie meten (kost tokens):
+
+```bash
+php artisan eval:extraction
+```
+
 ## Kwaliteit
 
 ```bash

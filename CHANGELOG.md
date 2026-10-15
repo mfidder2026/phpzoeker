@@ -1,5 +1,21 @@
 # Changelog
 
+## [Fase 2 — ingest en opdrachten] — 15-10-2026
+
+### Toegevoegd
+- Connector-framework (§8.3) met `FeedConnector` (RSS/Atom), `MailboxAlertConnector` (IMAP) en `ManualConnector`; robots.txt-check en herkenbare user agent.
+- Pipeline: alert-mails opsplitsen (`AlertMailSplitter`), exacte ontdubbeling op inhoud, relevantie-voorfilter, volledige openbare pagina ophalen, extractie (`AssignmentExtractor`, Bijlage B), normalisatie (uren, tarief, data, zzp, locatie), geocodering (PDOK), ontdubbeling op referentie en eindklant+titel, "mogelijk duplicaat".
+- Levenscyclus: automatisch sluiten na deadline of 14 dagen niet gezien; negeren met reden; heropenen; opnieuw extraheren met behoud van gecorrigeerde velden.
+- Schermen **Opdrachten** (filters, detail met samenvatting, eisen/wensen, originele tekst, bronnen, reisafstand per kandidaat, historie) en **Bronnen** (ToS-check verplicht, configuratie, run-log, Test run, Nu ophalen); instellingen **Bronnen & ingest**.
+- Planning: elke minuut bronnen die aan de beurt zijn, elk uur sluiten, dagelijks 07:00 gezondheidscheck met melding aan de beheerder.
+- Organisaties en contactpersonen worden bij extractie herkend; contactadressen alleen als ze letterlijk in de publicatie staan (R5).
+- Bronnen: De Publieke Partner (RSS, staat uit tot de ToS-check), Alerts-mailbox (nog te configureren), Handmatig.
+- Koppeling met het gedeelde postvak **aanvragen@fremen.app** via Microsoft Graph met knop **Inloggen bij Microsoft** (eenmalig inloggen met een code, geen app-registratie nodig): categorie in plaats van gelezen markeren, tokens versleuteld en nooit getoond, verbinding verbreken; zie `docs/m365-aanvragen-mailbox.md`.
+- `php artisan eval:extraction`; 52 nieuwe tests (132 totaal).
+
+### Gewijzigd
+- App-tijdzone Europe/Amsterdam.
+
 ## [Fase 1 — aanvulling] — 15-10-2026
 
 ### Gewijzigd

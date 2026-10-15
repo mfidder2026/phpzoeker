@@ -1,0 +1,19 @@
+Opdracht: Full Stack Developer (PHP/Vue)
+Opdrachtgever: Zorgverzekeraar Voorbeeld via Intermediair Voorbeeld B.V.
+Referentie: ZV-4471
+Werklocatie: Utrecht, 2 dagen per week op kantoor, verder thuis
+Omvang: 0,8 fte
+Periode: z.s.m. tot en met 31-03-2027
+Tarief: maximaal € 92,50 per uur inclusief marge intermediair
+Reageren kan tot 23-10-2026 09:00 uur.
+
+Wat ga je doen?
+Je bouwt mee aan het declaratieportaal (PHP 8.3, Symfony, Vue 3, MySQL).
+
+Knock-outcriteria
+1. Minimaal 3 jaar ervaring als full stack developer met PHP.
+2. Beheersing van de Nederlandse taal op C1-niveau.
+
+Gunningscriteria
+- Ervaring in de zorgsector (30 punten)
+- Ervaring met Vue 3 (20 punten)

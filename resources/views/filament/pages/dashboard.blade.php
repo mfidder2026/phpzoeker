@@ -7,7 +7,7 @@
     <div class="pz-dash">
         <div class="pz-hello">
             <h2>{{ $greeting }}, {{ $firstName }}</h2>
-            <p>{{ ucfirst($today) }} · opdrachten ophalen start in fase 2</p>
+            <p>{{ ucfirst($today) }} · {{ $newSinceYesterday }} {{ $newSinceYesterday === 1 ? 'nieuwe opdracht' : 'nieuwe opdrachten' }} sinds gisteren</p>
         </div>
 
         <div class="pz-tiles">
@@ -18,8 +18,8 @@
             </div>
             <div class="pz-tile">
                 <div class="pz-tile__label">Deadline binnen 24 uur</div>
-                <div class="pz-tile__value pz-tile__value--muted">—</div>
-                <div class="pz-tile__sub">Volgt in fase 3</div>
+                <div @class(['pz-tile__value', 'pz-tile__value--muted' => $deadlineSoon->isEmpty()])>{{ $deadlineSoon->count() }}</div>
+                <div class="pz-tile__sub">Open opdrachten (shortlist volgt in fase 3)</div>
             </div>
             <div class="pz-tile">
                 <div class="pz-tile__label">Aanbiedingen deze week</div>
@@ -65,7 +65,27 @@
                         </div>
                     @endif
                 @endforeach
-                <p class="pz-empty">Reacties, deadlines en sterke matches verschijnen hier vanaf fase 3 en 4.</p>
+                @foreach ($deadlineSoon as $assignment)
+                    <div class="pz-person">
+                        <span class="pz-chip pz-chip--warning">Deadline {{ $assignment->deadline_at->isToday() ? 'vandaag' : 'morgen' }} {{ $assignment->deadline_at->format('H:i') }}</span>
+                        <div>
+                            <div class="pz-person__name">{{ $assignment->title }}</div>
+                            <div class="pz-person__meta">{{ collect([$assignment->client_name, $assignment->city])->filter()->implode(' · ') }}</div>
+                        </div>
+                        <div class="pz-person__aside"><x-filament::button tag="a" size="sm" color="gray" :href="$assignmentUrl($assignment)">Bekijken</x-filament::button></div>
+                    </div>
+                @endforeach
+                @foreach ($latestAssignments->diff($deadlineSoon) as $assignment)
+                    <div class="pz-person">
+                        <span class="pz-chip pz-chip--info">Nieuw</span>
+                        <div>
+                            <div class="pz-person__name">{{ $assignment->title }}</div>
+                            <div class="pz-person__meta">{{ collect([$assignment->client_name, $assignment->city, $assignment->deadline_at ? 'deadline '.$assignment->deadline_at->format('d-m H:i') : null])->filter()->implode(' · ') }}</div>
+                        </div>
+                        <div class="pz-person__aside"><x-filament::button tag="a" size="sm" color="gray" :href="$assignmentUrl($assignment)">Bekijken</x-filament::button></div>
+                    </div>
+                @endforeach
+                <p class="pz-empty">Sterke matches en reacties op aanbiedingen verschijnen hier vanaf fase 3 en 4.</p>
             </div>
 
             <div class="pz-card">
@@ -95,13 +115,23 @@
                         @endif
                     </div>
                 </div>
-                <div class="pz-person">
-                    <div>
-                        <div class="pz-person__name">Bronnen</div>
-                        <div class="pz-person__meta">Alerts-mailbox, feeds en handmatige invoer</div>
+                @foreach ($sources as $source)
+                    <div class="pz-person">
+                        <div>
+                            <div class="pz-person__name">{{ $source->name }}</div>
+                            <div class="pz-person__meta">{{ $source->last_run_at ? 'Laatste run '.$source->last_run_at->format('d-m H:i') : 'Nog niet opgehaald' }}{{ $source->health_warning ? ' · '.$source->health_warning : '' }}</div>
+                        </div>
+                        <div class="pz-person__aside">
+                            @if (! $source->enabled)
+                                <span class="pz-chip">Uit</span>
+                            @elseif ($source->health_warning || $source->consecutive_failures > 0)
+                                <span class="pz-chip pz-chip--danger">Fout</span>
+                            @else
+                                <span class="pz-chip pz-chip--success">Actief</span>
+                            @endif
+                        </div>
                     </div>
-                    <div class="pz-person__aside"><span class="pz-chip">Fase 2</span></div>
-                </div>
+                @endforeach
             </div>
         </div>
 
