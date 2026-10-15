@@ -23,12 +23,12 @@ class EditSource extends EditRecord
     }
 
     /**
-     * Het mailboxwachtwoord gaat nooit terug naar de browser.
+     * Mailboxwachtwoord en client-secret gaan nooit terug naar de browser (zoals R9).
      */
     protected function mutateFormDataBeforeFill(array $data): array
     {
         $config = $this->record->config ?? [];
-        unset($config['password']);
+        unset($config['password'], $config['client_secret']);
         $data['config'] = $config;
 
         return $data;

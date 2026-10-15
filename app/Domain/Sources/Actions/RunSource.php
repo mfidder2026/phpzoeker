@@ -62,6 +62,11 @@ class RunSource
                             $posting->assignment?->forceFill(['last_seen_at' => now()])->save();
                         }
 
+                        // Al opgeslagen maar nog niet gemarkeerd (bijv. na een onderbroken run).
+                        if ($connector instanceof AcknowledgesPostings) {
+                            $connector->acknowledge($source, $data);
+                        }
+
                         continue;
                     }
 

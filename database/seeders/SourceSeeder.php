@@ -43,20 +43,22 @@ class SourceSeeder extends Seeder
         ]);
 
         Source::query()->firstOrCreate(['key' => 'alerts-mailbox'], [
-            'name' => 'Alerts-mailbox',
+            'name' => 'Aanvragen-mailbox (aanvragen@fremen.app)',
             'type' => SourceType::MailboxAlert,
             'config' => [
-                'host' => 'imap.gmail.com',
-                'port' => 993,
-                'encryption' => 'ssl',
-                'username' => '',
-                'password' => '',
-                'folder' => 'INBOX',
+                'protocol' => 'graph',
+                'mailbox' => 'aanvragen@fremen.app',
+                'folder' => 'Inbox',
+                'tenant_id' => '',
+                'client_id' => '',
+                'client_secret' => '',
+                'since_days' => 14,
                 'internal_domains' => ['fremen.app'],
             ],
             'enabled' => false,
             'poll_interval_minutes' => 15,
-            'access_method' => 'Job alerts van platforms en intermediairs (o.a. LinkedIn, Striive, Freelance.nl) naar een eigen mailbox',
+            'access_method' => 'Gedeeld postvak in Microsoft 365 via Microsoft Graph: aanvragen van klanten en collega’s plus job alerts van platforms en intermediairs (o.a. LinkedIn)',
+            'tos_notes' => 'Eigen gedeeld postvak van Fremen. Alerts komen binnen via de reguliere e-mailmeldingen van de platforms (toegestaan); de app leest alleen deze mailbox (app-registratie beperkt tot aanvragen@fremen.app).',
         ]);
     }
 }

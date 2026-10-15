@@ -4,7 +4,7 @@ namespace App\Filament\Resources\Sources\Pages\Concerns;
 
 /**
  * Gedeeld door aanmaken en bewerken: zonder ToS-check kan een bron niet aan (FR-B2), en een
- * leeg wachtwoordveld behoudt het opgeslagen wachtwoord.
+ * leeg wachtwoord- of secretveld behoudt de opgeslagen waarde.
  */
 trait GuardsSourceForm
 {
@@ -21,8 +21,10 @@ trait GuardsSourceForm
 
         $config = (array) ($data['config'] ?? []);
 
-        if (blank($config['password'] ?? null) && isset($existingConfig['password'])) {
-            $config['password'] = $existingConfig['password'];
+        foreach (['password', 'client_secret'] as $secret) {
+            if (blank($config[$secret] ?? null) && isset($existingConfig[$secret])) {
+                $config[$secret] = $existingConfig[$secret];
+            }
         }
 
         $data['config'] = [...$existingConfig, ...array_filter($config, fn (mixed $value): bool => $value !== null)];

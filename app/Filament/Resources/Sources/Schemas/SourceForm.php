@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Sources\Schemas;
 
 use App\Domain\Sources\Enums\SourceType;
+use App\Domain\Sources\Mailbox\GraphMailboxClient;
 use App\Settings\IngestSettings;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -43,17 +44,35 @@ class SourceForm
             Section::make('Feed')->visible($isType(SourceType::Feed))->schema([
                 TextInput::make('config.feed_url')->label('Feed-URL (RSS of Atom)')->url()->required(fn (Get $get): bool => self::type($get) === SourceType::Feed),
             ]),
-            Section::make('Alerts-mailbox (IMAP)')->visible($isType(SourceType::MailboxAlert))->columns(3)->schema([
-                TextInput::make('config.host')->label('IMAP-server')->placeholder('imap.gmail.com'),
-                TextInput::make('config.port')->label('Poort')->numeric()->default(993),
-                Select::make('config.encryption')->label('Versleuteling')->options(['ssl' => 'SSL', 'tls' => 'STARTTLS'])->default('ssl'),
-                TextInput::make('config.username')->label('Gebruikersnaam'),
-                TextInput::make('config.password')->label('(App-)wachtwoord')->password()->autocomplete('new-password')
-                    ->helperText('Versleuteld opgeslagen. Laat leeg om het huidige wachtwoord te behouden.'),
-                TextInput::make('config.folder')->label('Map')->default('INBOX'),
-                TagsInput::make('config.internal_domains')->label('Eigen domeinen')->default(['fremen.app'])->columnSpanFull()
-                    ->helperText('Mails van deze domeinen zijn doorgestuurde aanvragen (bron "Handmatig", §8.6).'),
-            ]),
+            Section::make('Mailbox')->visible($isType(SourceType::MailboxAlert))
+                ->description('De mailbox waar aanvragen en job alerts binnenkomen. Elke nieuwe mail wordt een opdracht; er wordt niets verwijderd.')
+                ->columns(3)
+                ->schema([
+                    Select::make('config.protocol')->label('Koppeling')->required()->live()->default('graph')
+                        ->options(['graph' => 'Microsoft 365 (Microsoft Graph)', 'imap' => 'IMAP (bijv. Gmail)']),
+                    TextInput::make('config.mailbox')->label('Mailbox')->email()->placeholder('aanvragen@fremen.app')
+                        ->visible(fn (Get $get): bool => $get('config.protocol') === 'graph')->required(fn (Get $get): bool => $get('config.protocol') === 'graph'),
+                    TextInput::make('config.folder')->label('Map')->default('Inbox'),
+                    TextInput::make('config.tenant_id')->label('Tenant-ID')->visible(fn (Get $get): bool => $get('config.protocol') === 'graph'),
+                    TextInput::make('config.client_id')->label('Client-ID (app-registratie)')->visible(fn (Get $get): bool => $get('config.protocol') === 'graph'),
+                    TextInput::make('config.client_secret')->label('Client-secret')->password()->autocomplete('new-password')
+                        ->visible(fn (Get $get): bool => $get('config.protocol') === 'graph')
+                        ->helperText('Versleuteld opgeslagen en nooit meer getoond. Laat leeg om het huidige secret te behouden.'),
+                    TextInput::make('config.processed_category')->label('Categorie voor verwerkte mails')->placeholder(GraphMailboxClient::DEFAULT_CATEGORY)
+                        ->visible(fn (Get $get): bool => $get('config.protocol') === 'graph')
+                        ->helperText('Gelezen/ongelezen blijft van de collega\'s; de app herkent verwerkte mails aan deze categorie.'),
+                    TextInput::make('config.since_days')->label('Eerste keer terugkijken')->numeric()->minValue(1)->maxValue(90)->suffix('dagen')->default(14)
+                        ->visible(fn (Get $get): bool => $get('config.protocol') === 'graph'),
+                    TextInput::make('config.host')->label('IMAP-server')->placeholder('imap.gmail.com')->visible(fn (Get $get): bool => $get('config.protocol') === 'imap'),
+                    TextInput::make('config.port')->label('Poort')->numeric()->default(993)->visible(fn (Get $get): bool => $get('config.protocol') === 'imap'),
+                    Select::make('config.encryption')->label('Versleuteling')->options(['ssl' => 'SSL', 'tls' => 'STARTTLS'])->default('ssl')->visible(fn (Get $get): bool => $get('config.protocol') === 'imap'),
+                    TextInput::make('config.username')->label('Gebruikersnaam')->visible(fn (Get $get): bool => $get('config.protocol') === 'imap'),
+                    TextInput::make('config.password')->label('(App-)wachtwoord')->password()->autocomplete('new-password')
+                        ->visible(fn (Get $get): bool => $get('config.protocol') === 'imap')
+                        ->helperText('Versleuteld opgeslagen. Laat leeg om het huidige wachtwoord te behouden.'),
+                    TagsInput::make('config.internal_domains')->label('Eigen domeinen')->default(['fremen.app'])->columnSpanFull()
+                        ->helperText('Mails van deze domeinen zijn doorgestuurde aanvragen van collega\'s (§8.6); andere mails zijn alerts van platforms en intermediairs.'),
+                ]),
             Section::make('Gebruiksvoorwaarden (ToS-check, §8.4)')
                 ->description('Verplicht voordat de bron aan kan: geen scraping achter een login, geen captcha\'s omzeilen, robots.txt respecteren (R3).')
                 ->columns(2)
