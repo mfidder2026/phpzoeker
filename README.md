@@ -61,7 +61,7 @@ master-profiel hebben: voorselectie en harde filters zonder AI, daarna een AI-be
 score met opbouw (instellingen in **Instellingen → Matching**). Resultaten staan in **Werk → Matches**, op het
 tabblad *Matches* van een opdracht en in de **Shortlist**-kanban. Sterke matches geven direct een melding; de
 digest gaat op werkdagen om 08:00 (instelbaar in **Instellingen → Meldingen**). De worker moet daarvoor draaien
-(`queue:work --queue=ai,ingest,documents,mail,default`), net als de scheduler.
+(`queue:work --queue=ingest,ai,documents,mail,default`), net als de scheduler.
 
 Kwaliteit van de matching meten (kost tokens; de door Fremen gelabelde set hoort in `storage/app/private/eval/matching`):
 

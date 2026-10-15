@@ -73,6 +73,7 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(PanelsRenderHook::SIDEBAR_FOOTER, fn (): string => Blade::render('@livewire(\'ai-gauge\', [\'compact\' => true])'))
             ->renderHook(PanelsRenderHook::AUTH_LOGIN_FORM_AFTER, fn (): string => Blade::render("@livewire('microsoft-sign-in-panel')"))
             ->renderHook(PanelsRenderHook::BODY_END, fn (): string => Blade::render('@livewire(\'ai-run-progress-panel\')'))
+            ->renderHook(PanelsRenderHook::BODY_END, fn (): string => Blade::render("@livewire('source-search-panel')"))
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

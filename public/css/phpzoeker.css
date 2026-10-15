@@ -254,3 +254,10 @@ html:not(.dark) .fi-main-ctn {
 .pz-signin__divider { display: flex; align-items: center; gap: .6rem; color: var(--pz-muted); font-size: .8rem; margin-bottom: .8rem; }
 .pz-signin__divider::before, .pz-signin__divider::after { content: ""; flex: 1; border-top: 1px solid var(--pz-border); }
 .pz-signin__code { font-size: 1.8rem; font-weight: 700; letter-spacing: .2em; font-family: ui-monospace, monospace; color: var(--pz-primary); text-align: center; margin: .4rem 0 .8rem; cursor: pointer; }
+.pz-progress__pct { font-size: 1.6rem; font-weight: 700; color: var(--pz-primary); }
+.pz-search-source { display: block; padding: 0.1rem 0; }
+.pz-search-source--failed { color: var(--pz-danger); }
+.pz-search-pill { position: fixed; right: 16px; bottom: 16px; z-index: 55; display: inline-flex; align-items: center; gap: 0.5rem; max-width: calc(100vw - 32px); padding: 0.6rem 0.95rem; border-radius: 99px; border: 1px solid var(--pz-border); background: var(--pz-surface); color: var(--pz-text); font-size: 0.85rem; font-weight: 600; box-shadow: 0 6px 24px rgba(24, 18, 28, 0.18); cursor: pointer; }
+.pz-search-pill__dot { width: 0.6rem; height: 0.6rem; border-radius: 99px; background: var(--pz-primary); animation: pz-pulse 1.2s ease-in-out infinite; flex: none; }
+.pz-search-pill__dot--done { background: var(--pz-success); animation: none; }
+@keyframes pz-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }

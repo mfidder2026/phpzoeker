@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Sources;
 
+use App\Domain\Sources\Actions\SourceSearch;
 use App\Domain\Sources\ConnectorRegistry;
 use App\Domain\Sources\Data\ConnectorTestResult;
 use App\Domain\Sources\Enums\SourceType;
@@ -12,6 +13,7 @@ use App\Filament\Support\Access;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
+use Livewire\Component;
 use Throwable;
 
 /**
@@ -104,10 +106,11 @@ final class SourceActions
             ->label('Nu zoeken')
             ->icon(Heroicon::OutlinedMagnifyingGlass)
             ->visible(fn (): bool => Access::isStaff())
-            ->action(function (): void {
-                $sources = Source::query()->where('enabled', true)->whereIn('type', SourceType::searchable())->orderBy('name')->get();
+            ->action(function (Component $livewire): void {
+                $user = Access::user();
+                $search = $user !== null ? app(SourceSearch::class)->start($user) : null;
 
-                if ($sources->isEmpty()) {
+                if ($search === null) {
                     Notification::make()->warning()->title('Geen actieve bronnen')
                         ->body('Zet eerst een bron aan bij Bronnen (na de ToS-check).')
                         ->send();
@@ -115,13 +118,7 @@ final class SourceActions
                     return;
                 }
 
-                foreach ($sources as $source) {
-                    FetchSourceJob::dispatch($source->id);
-                }
-
-                Notification::make()->success()->title('Zoeken gestart in '.$sources->count().' '.($sources->count() === 1 ? 'bron' : 'bronnen'))
-                    ->body($sources->pluck('name')->implode(', ').'. Nieuwe opdrachten verschijnen bij Opdrachten en worden daarna gematcht.')
-                    ->send();
+                $livewire->dispatch('source-search-started');
             });
     }
 }
