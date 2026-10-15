@@ -135,6 +135,7 @@ html:not(.dark) .fi-main-ctn {
 .pz-dash { display: flex; flex-direction: column; gap: 1.25rem; }
 .pz-hello h2 { font-size: 1.6rem; font-weight: 700; color: var(--pz-text); margin: 0; }
 .pz-hello p { color: var(--pz-muted); margin: 0.2rem 0 0; font-size: 0.9rem; }
+.pz-hello--actions { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
 .pz-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 0.9rem; }
 .pz-tile { background: var(--pz-surface); border: 1px solid var(--pz-border); border-radius: 14px; padding: 1rem 1.1rem; }
 .pz-tile__label { font-size: 0.8rem; color: var(--pz-muted); }

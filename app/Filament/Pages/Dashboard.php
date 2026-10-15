@@ -10,13 +10,17 @@ use App\Domain\Matching\Enums\MatchLabel;
 use App\Domain\Matching\Enums\MatchStatus;
 use App\Domain\Matching\Models\CandidateMatch;
 use App\Domain\Offers\Models\Offer;
+use App\Domain\Sources\Enums\SourceType;
 use App\Domain\Sources\Models\Source;
 use App\Filament\Resources\Assignments\AssignmentResource;
 use App\Filament\Resources\Candidates\CandidateResource;
 use App\Filament\Resources\Matches\MatchResource;
 use App\Filament\Resources\Offers\OfferResource;
+use App\Filament\Resources\Sources\SourceActions;
+use App\Filament\Resources\Sources\SourceResource;
 use App\Filament\Support\Access;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Pages\Dashboard as BaseDashboard;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Collection;
@@ -41,6 +45,11 @@ class Dashboard extends BaseDashboard
     public function getHeading(): string
     {
         return '';
+    }
+
+    public function searchAllAction(): Action
+    {
+        return SourceActions::searchAll();
     }
 
     /**
@@ -83,7 +92,10 @@ class Dashboard extends BaseDashboard
             'newSinceYesterday' => Assignment::query()->where('is_relevant', true)->where('created_at', '>=', now()->subDay()->startOfDay())->count(),
             'deadlineSoon' => Assignment::query()->open()->where('is_relevant', true)->whereBetween('deadline_at', [now(), now()->addDay()])->orderBy('deadline_at')->get(),
             'latestAssignments' => Assignment::query()->open()->where('is_relevant', true)->latest()->limit(5)->get(),
-            'sources' => Source::query()->orderByDesc('enabled')->orderBy('name')->get(),
+            'sources' => Source::query()->where('type', '!=', SourceType::Alert->value)->orderByDesc('enabled')->orderBy('name')->get(),
+            'alertsSetUp' => Source::query()->where('type', SourceType::Alert->value)->where('enabled', true)->count(),
+            'alertsTotal' => Source::query()->where('type', SourceType::Alert->value)->count(),
+            'sourcesUrl' => Access::isBeheerder() ? SourceResource::getUrl() : null,
             'strongToday' => $matches()->where('label', MatchLabel::Sterk->value)->where('created_at', '>=', now()->startOfDay())->count(),
             'strongOpen' => $matches()->where('label', MatchLabel::Sterk->value)->whereIn('status', [MatchStatus::Nieuw->value, MatchStatus::Bekeken->value])->orderByDesc('score')->limit(8)->get(),
             'shortlistSoon' => $matches()->where('status', MatchStatus::Shortlist->value)

@@ -92,17 +92,29 @@ class SourceForm
                     TagsInput::make('config.internal_domains')->label('Eigen domeinen')->default(['fremen.app'])->columnSpanFull()
                         ->helperText('Mails van deze domeinen zijn doorgestuurde aanvragen van collega\'s (§8.6); andere mails zijn alerts van platforms en intermediairs.'),
                 ]),
+            Section::make('Job alert')->visible($isType(SourceType::Alert))
+                ->description('De app haalt deze bron niet zelf op. Maak bij het platform een job alert (of e-mailnotificatie) aan naar aanvragen@fremen.app; de aanvragen-mailbox verwerkt die mails. Zet de bron daarna aan als geheugensteun dat de alert loopt.')
+                ->columns(2)
+                ->schema([
+                    TextInput::make('config.alert_url')->label('Waar stel je de alert in')->url()->placeholder('https://…'),
+                    TextInput::make('config.alert_address')->label('Alert gaat naar')->email()->default('aanvragen@fremen.app'),
+                    TagsInput::make('config.sender_domains')->label('Afzenderdomeinen van de alerts')->placeholder('freelance.nl'),
+                    Textarea::make('config.alert_tips')->label('Zoekopdracht / tips')->rows(2)->placeholder('Bijv. PHP, Laravel, Symfony; regio Nederland'),
+                ]),
             Section::make('Gebruiksvoorwaarden (ToS-check, §8.4)')
                 ->description('Verplicht voordat de bron aan kan: geen scraping achter een login, geen captcha\'s omzeilen, robots.txt respecteren (R3).')
                 ->columns(2)
                 ->schema([
                     DatePicker::make('tos_reviewed_at')->label('ToS gecontroleerd op')->native(false)->displayFormat('d-m-Y')->live(),
                     Textarea::make('tos_notes')->label('Samenvatting gebruiksvoorwaarden')->rows(3)->live(onBlur: true),
-                    Toggle::make('enabled')->label('Bron aan')
-                        ->disabled(fn (Get $get): bool => blank($get('tos_reviewed_at')) || blank($get('tos_notes')))
-                        ->helperText(fn (Get $get): string => blank($get('tos_reviewed_at')) || blank($get('tos_notes'))
-                            ? 'Vul eerst de ToS-check in (datum én samenvatting).'
-                            : 'De scheduler haalt de bron op volgens het interval.'),
+                    Toggle::make('enabled')->label(fn (Get $get): string => self::type($get) === SourceType::Alert ? 'Alert is ingesteld' : 'Bron aan')
+                        ->disabled(fn (Get $get): bool => self::type($get) !== SourceType::Alert && (blank($get('tos_reviewed_at')) || blank($get('tos_notes'))))
+                        ->helperText(fn (Get $get): string => match (true) {
+                            self::type($get) === SourceType::Alert => 'Een alert ontvangt alleen de gewone e-mailmeldingen van het platform; daar is geen ToS-check voor nodig.',
+                            in_array(self::type($get), [SourceType::Api, SourceType::TenderNed], true) => 'Voor dit brontype is nog geen connector gebouwd; de app haalt de bron nog niet op.',
+                            blank($get('tos_reviewed_at')) || blank($get('tos_notes')) => 'Vul eerst de ToS-check in (datum én samenvatting).',
+                            default => 'De scheduler haalt de bron op volgens het interval.',
+                        }),
                 ]),
         ]);
     }

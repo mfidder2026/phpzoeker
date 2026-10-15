@@ -2,11 +2,14 @@
 
 namespace App\Filament\Resources\Sources\Tables;
 
+use App\Domain\Sources\Enums\SourceType;
 use App\Domain\Sources\Models\Source;
 use App\Filament\Resources\Sources\SourceActions;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
 class SourcesTable
@@ -15,6 +18,10 @@ class SourcesTable
     {
         return $table
             ->defaultSort('name')
+            ->filters([
+                SelectFilter::make('type')->label('Type')->options(SourceType::class),
+                TernaryFilter::make('enabled')->label('Aan'),
+            ])
             ->columns([
                 TextColumn::make('name')->label('Bron')->searchable()->sortable()
                     ->description(fn (Source $record): string => (string) $record->access_method),
@@ -26,14 +33,17 @@ class SourcesTable
                 TextColumn::make('raw_postings_count')->label('Publicaties')->counts('rawPostings'),
                 TextColumn::make('health')->label('Status')->badge()
                     ->state(fn (Source $record): string => match (true) {
+                        $record->type === SourceType::Alert => $record->enabled ? 'Alert ingesteld' : 'Alert nog instellen',
+                        ! $record->type->canFetch() => 'Connector ontbreekt',
                         ! $record->enabled => 'Uit',
                         $record->health_warning !== null => 'Waarschuwing',
                         $record->consecutive_failures > 0 => $record->consecutive_failures.'× fout',
                         default => 'Actief',
                     })
                     ->color(fn (string $state): string => match ($state) {
-                        'Actief' => 'success',
-                        'Uit' => 'gray',
+                        'Actief', 'Alert ingesteld' => 'success',
+                        'Uit', 'Connector ontbreekt' => 'gray',
+                        'Alert nog instellen' => 'warning',
                         default => 'danger',
                     })
                     ->tooltip(fn (Source $record): ?string => $record->health_warning),

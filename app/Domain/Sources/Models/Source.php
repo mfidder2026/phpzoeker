@@ -64,7 +64,7 @@ class Source extends Model
     protected static function booted(): void
     {
         static::saving(function (Source $source): void {
-            if ($source->enabled && ! $source->hasToSCheck()) {
+            if ($source->enabled && $source->type !== SourceType::Alert && ! $source->hasToSCheck()) {
                 throw new \DomainException('Een bron kan pas aan als de ToS-check is ingevuld (datum en notitie).');
             }
         });
@@ -86,7 +86,7 @@ class Source extends Model
 
     public function isDue(): bool
     {
-        return $this->enabled && ($this->last_run_at === null || $this->last_run_at->lte(now()->subMinutes($this->poll_interval_minutes)));
+        return $this->enabled && $this->type->canFetch() && ($this->last_run_at === null || $this->last_run_at->lte(now()->subMinutes($this->poll_interval_minutes)));
     }
 
     public function configValue(string $key, mixed $default = null): mixed

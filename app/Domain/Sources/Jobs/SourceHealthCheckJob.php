@@ -26,7 +26,7 @@ class SourceHealthCheckJob implements ShouldQueue
     {
         $warnings = [];
 
-        foreach (Source::query()->where('enabled', true)->where('type', '!=', SourceType::Manual->value)->get() as $source) {
+        foreach (Source::query()->where('enabled', true)->whereIn('type', SourceType::searchable())->get() as $source) {
             $reference = $source->last_new_posting_at ?? $source->created_at;
             $warning = $source->health_warning;
 

@@ -1,6 +1,6 @@
 # Bronnenrapport (fase 0) — CONCEPT, nog te onderzoeken
 
-> Status: **nog niet uitgevoerd.** Per bron moet nog worden vastgesteld of er een API/feed of alert-functie is, wat de gebruiksvoorwaarden zeggen en of er een login nodig is (§22, fase 0). Deze tabel is het startpunt uit §8.2; de kolommen *Bevinding* en *Besluit* worden ingevuld na onderzoek en review door Fremen.
+> Status (15-10-2026): **alle bronnen staan in de app** (Bronnen). Feeds van Quest4, Morgan Black en B-Hunted gevonden en robots.txt gecontroleerd; de overige bronnen lopen via job alerts naar de aanvragen-mailbox. Oorspronkelijke status: nog niet uitgevoerd. Per bron moet nog worden vastgesteld of er een API/feed of alert-functie is, wat de gebruiksvoorwaarden zeggen en of er een login nodig is (§22, fase 0). Deze tabel is het startpunt uit §8.2; de kolommen *Bevinding* en *Besluit* worden ingevuld na onderzoek en review door Fremen.
 
 | Prio | Bron | Voorgestelde methode | API/feed? | Alerts? | Login nodig? | ToS-samenvatting | Bevinding | Besluit |
 |------|------|----------------------|-----------|---------|--------------|------------------|-----------|---------|
