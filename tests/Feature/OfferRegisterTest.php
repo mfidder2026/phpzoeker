@@ -109,7 +109,8 @@ it('refuses every change of a snapshot, in the app and in the database', functio
     $snapshot = sentOffer($user)->snapshot;
 
     expect(fn () => $snapshot->update(['email_text' => 'gewijzigd']))->toThrow(LogicException::class)
-        ->and(fn () => DB::table('offer_snapshots')->where('id', $snapshot->id)->update(['email_text' => 'gewijzigd']))->toThrow(QueryException::class)
+        // In een savepoint: op PostgreSQL breekt de geweigerde UPDATE anders de hele testtransactie af.
+        ->and(fn () => DB::transaction(fn () => DB::table('offer_snapshots')->where('id', $snapshot->id)->update(['email_text' => 'gewijzigd'])))->toThrow(QueryException::class)
         ->and(fn () => $snapshot->delete())->toThrow(LogicException::class);
 
     expect(DB::table('activity_log')->where('description', 'Poging om een snapshot te wijzigen geweigerd')->exists())->toBeTrue()
