@@ -1,5 +1,17 @@
 # Changelog
 
+## [Fase 1 — aanvulling] — 15-10-2026
+
+### Gewijzigd
+- Fremen-CV-template nu **afgeleid uit het aangeleverde CV van Mark** (exacte opmaak, logo, voettekst); pasfoto en metadata verwijderd. `cv:build-template` vraagt het bron-CV.
+- Renderer ondersteunt meerdere profielalinea's, aanvullende secties in twee kolommen, eigen sectiekoppen, slotregel en projectsubtitels; waarden worden correct ge-escaped (een `&` gaf eerder een ongeldig document).
+- Profielschema uitgebreid (D17); prompt `cv-importer.v2`.
+- CV-import neemt pasfoto, telefoon en e-mail lokaal over (D19).
+
+### Toegevoegd
+- Master-profielen van Mark en Sten geïmporteerd (conceptversie 1, nog te reviewen en goed te keuren).
+- De Publieke Partner (RSS-feed ICT & automatisering) en LinkedIn (alleen job-alerts) in het bronnenrapport.
+
 ## [Fase 0 + 1] — 15-10-2026
 
 ### Toegevoegd

@@ -13,7 +13,7 @@ return [
     */
 
     'prompts' => [
-        'cv-importer' => 'v1',
+        'cv-importer' => 'v2',
     ],
 
     /*

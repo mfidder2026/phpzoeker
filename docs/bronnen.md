@@ -9,7 +9,8 @@
 | 1 | Hoofdkraan.nl | Alerts of feed | ? | ? | ? | ? | | |
 | 1 | IT-contracts.nl | Alerts of feed | ? | ? | ? | ? | | |
 | 1 | Freelancer.nl | Alerts → mailbox | ? | ? | ? | ? | | |
-| 1 | LinkedIn Jobs | Alleen job-alert e-mails (geen scraping) | n.v.t. | ? | ja | Scraping verboden (R3) | | |
+| 1 | LinkedIn Jobs (op verzoek Fremen, 15-10-2026) | **Alleen job-alert e-mails** naar de alerts-mailbox; de volledige opdrachttekst handmatig of via de link als die openbaar is | geen openbare API voor vacatures | ja (job alerts per zoekopdracht) | ja | Gebruiksvoorwaarden verbieden scraping en geautomatiseerde toegang; daarom geen connector op de site zelf (R3) | Fremen stelt job alerts in (bijv. "Laravel", "PHP developer", Nederland) met afzender naar de alerts-mailbox | Go via mailbox |
+| 1 | **De Publieke Partner** (depubliekepartner.nl, op verzoek Fremen, 15-10-2026) | **RSS-feed** van de categorie ICT & automatisering: `https://depubliekepartner.nl/category/zzp-opdrachten-overheid/ict-en-automatisering/feed/` | ja: WordPress-RSS (gecontroleerd 15-10-2026: 10 items, vandaag bijgewerkt) | onbekend | nee | robots.txt: `User-agent: *` → `Allow: /` (alleen `/wp-admin/` uitgesloten). Gebruiksvoorwaarden nog lezen | Overheidsopdrachten (zzp/detachering); feed bevat ook niet-ontwikkelrollen → relevantiefilter (FR-O4) nodig | Voorstel: go, `FeedConnector` in fase 2, interval 60 min, na ToS-check |
 | 1 | Indeed NL | Job-alert e-mails | ? | ? | ? | ? | | |
 | 2 | OverheidZZP.nl | Alerts → mailbox | ? | ? | ? | ? | | |
 | 2 | Bij Oranje | Alerts → mailbox | ? | ? | ? | ? | | |

@@ -16,7 +16,7 @@ composer install
 cp .env.example .env        # vul AI_BOOTSTRAP_* en MAIL_* in; secrets alleen in .env
 php artisan key:generate
 php artisan migrate --seed  # rollen, beheerder, AI-agentprofiel, kandidaten
-php artisan cv:build-template
+php artisan cv:build-template pad/naar/Fremen-CV.docx   # alleen nodig om de template opnieuw af te leiden
 composer run dev            # webserver + queue-worker (ook de queue "ai")
 ```
 

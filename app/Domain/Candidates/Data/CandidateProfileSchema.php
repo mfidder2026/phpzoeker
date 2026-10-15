@@ -65,6 +65,7 @@ final class CandidateProfileSchema
                     'properties' => [
                         'id' => $string,
                         'naam' => $string,
+                        'subtitel' => $nullableString,
                         'omschrijving' => $string,
                         'technologieen' => $stringList,
                         'periode' => $nullableString,
@@ -101,6 +102,21 @@ final class CandidateProfileSchema
                     'properties' => ['taal' => $string, 'niveau' => $string],
                 ]],
                 'overige_vaardigheden' => $stringList,
+                // Uitbreidingen op Bijlage D (D17): onderdelen die in de Fremen-CV's voorkomen.
+                'aanvullende_secties' => ['type' => 'array', 'items' => [
+                    'type' => 'object',
+                    'required' => ['kop', 'items'],
+                    'properties' => ['kop' => $string, 'items' => $stringList],
+                ]],
+                'sectiekoppen' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'opleidingen' => $nullableString,
+                        'eerdere_ervaring' => $nullableString,
+                        'talen' => $nullableString,
+                    ],
+                ],
+                'voetregel' => $nullableString,
             ],
         ];
     }
@@ -144,6 +160,13 @@ final class CandidateProfileSchema
             'talen' => ['present', 'array'],
             'talen.*.taal' => ['required', 'string'],
             'overige_vaardigheden' => ['present', 'array'],
+            'projecten.*.subtitel' => ['nullable', 'string'],
+            'aanvullende_secties' => ['nullable', 'array'],
+            'aanvullende_secties.*.kop' => ['required', 'string'],
+            'aanvullende_secties.*.items' => ['present', 'array'],
+            'aanvullende_secties.*.items.*' => ['string'],
+            'sectiekoppen' => ['nullable', 'array'],
+            'voetregel' => ['nullable', 'string'],
         ];
     }
 
@@ -187,6 +210,12 @@ final class CandidateProfileSchema
             $terms[] = (string) $skill;
         }
 
+        foreach ((array) ($data['aanvullende_secties'] ?? []) as $section) {
+            foreach ((array) ($section['items'] ?? []) as $item) {
+                $terms[] = (string) $item;
+            }
+        }
+
         $normalized = array_map(fn (string $term): string => Str::of($term)->lower()->squish()->toString(), $terms);
 
         $unique = array_values(array_unique(array_filter($normalized, fn (string $term): bool => $term !== '')));
@@ -215,6 +244,9 @@ final class CandidateProfileSchema
             'eerdere_ervaring' => [],
             'talen' => [],
             'overige_vaardigheden' => [],
+            'aanvullende_secties' => [],
+            'sectiekoppen' => ['opleidingen' => null, 'eerdere_ervaring' => null, 'talen' => null],
+            'voetregel' => null,
         ];
     }
 }

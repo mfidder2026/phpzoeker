@@ -57,6 +57,7 @@
         @foreach ($data['projecten'] as $project)
             <div class="pz-cv__entry">
                 <strong>{{ $project['naam'] ?? '' }}</strong>
+                @if (! empty($project['subtitel'])) <span class="pz-cv__muted">· {{ $project['subtitel'] }}</span> @endif
                 @if (! empty($project['periode'])) <span class="pz-cv__muted">· {{ $project['periode'] }}</span> @endif
                 <div>{{ $project['omschrijving'] ?? '' }}</div>
                 @if (! empty($project['technologieen']))
@@ -66,8 +67,17 @@
         @endforeach
     @endif
 
+    @foreach ($data['aanvullende_secties'] ?? [] as $section)
+        <h4>{{ $section['kop'] ?? '' }}</h4>
+        <ul>
+            @foreach ($section['items'] ?? [] as $item)
+                <li>{{ $item }}</li>
+            @endforeach
+        </ul>
+    @endforeach
+
     @if (! empty($data['opleidingen']) || ! empty($data['certificaten']))
-        <h4>Opleidingen en certificaten</h4>
+        <h4>{{ $data['sectiekoppen']['opleidingen'] ?? 'Opleidingen en certificaten' }}</h4>
         <ul>
             @foreach ($data['opleidingen'] ?? [] as $education)
                 <li>{{ $education['periode'] ?? '' }} — {{ $education['naam'] ?? '' }} @if (! empty($education['instelling'])) ({{ $education['instelling'] }}) @endif <span class="pz-cv__muted">· {{ $education['status'] ?? '' }}</span></li>

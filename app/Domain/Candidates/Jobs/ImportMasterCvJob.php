@@ -10,6 +10,7 @@ use App\Ai\Support\PromptRepository;
 use App\Domain\Candidates\Data\CandidateProfileSchema;
 use App\Domain\Candidates\Models\Candidate;
 use App\Domain\Candidates\Models\CandidateProfile;
+use App\Domain\Documents\DocxPhotoExtractor;
 use App\Domain\Documents\DocxTextExtractor;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -32,6 +33,7 @@ class ImportMasterCvJob implements ShouldQueue
      */
     public const STEPS = [
         ['key' => 'read', 'label' => 'Word-bestand lezen', 'weight' => 10],
+        ['key' => 'details', 'label' => 'Pasfoto en contactgegevens overnemen (lokaal)', 'weight' => 5],
         ['key' => 'scrub', 'label' => 'Persoonsgegevens afschermen', 'weight' => 5],
         ['key' => 'convert', 'label' => 'CV omzetten naar profiel', 'weight' => 70],
         ['key' => 'save', 'label' => 'Conceptversie opslaan', 'weight' => 15],
@@ -46,7 +48,7 @@ class ImportMasterCvJob implements ShouldQueue
         $this->onQueue('ai');
     }
 
-    public function handle(DocxTextExtractor $extractor, PiiScrubber $scrubber, CvImporter $importer, PromptRepository $prompts): void
+    public function handle(DocxTextExtractor $extractor, DocxPhotoExtractor $photos, PiiScrubber $scrubber, CvImporter $importer, PromptRepository $prompts): void
     {
         $run = RunTracker::resume($this->runId)->markRunning();
         $candidate = Candidate::query()->findOrFail($this->candidateId);
@@ -54,6 +56,10 @@ class ImportMasterCvJob implements ShouldQueue
         try {
             $step = $run->step('read')->begin(basename($this->path));
             $text = $extractor->extract(Storage::disk($this->disk)->path($this->path));
+            $step->complete();
+
+            $step = $run->step('details')->begin();
+            $details = $this->takeOverDetails($candidate, $text, $photos);
             $step->complete();
 
             $step = $run->step('scrub')->begin();
@@ -81,11 +87,45 @@ class ImportMasterCvJob implements ShouldQueue
                 'version' => $profile->version,
                 'werkervaring' => count($data['werkervaring']),
                 'projecten' => count($data['projecten']),
+                'overgenomen' => $details,
             ]);
         } catch (RunCancelledException) {
             $run->cancel();
         } catch (Throwable $exception) {
             $run->fail($exception);
         }
+    }
+
+    /**
+     * Neemt pasfoto, telefoon en e-mail over uit het CV als die nog niet bij de kandidaat staan.
+     * Dit gebeurt deterministisch in de app; deze gegevens gaan nooit naar het taalmodel (R4).
+     *
+     * @return list<string> welke gegevens zijn overgenomen (zonder de waarden)
+     */
+    private function takeOverDetails(Candidate $candidate, string $text, DocxPhotoExtractor $photos): array
+    {
+        $taken = [];
+        $head = mb_substr($text, 0, 1500);
+
+        if (blank($candidate->phone) && preg_match('/(?:\+31|0031|0)[\s\-.]?(?:\(0\))?\s?\d(?:[\s\-.]?\d){7,9}/u', $head, $match) === 1) {
+            $candidate->phone = trim($match[0]);
+            $taken[] = 'telefoon';
+        }
+
+        if (blank($candidate->email) && preg_match('/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}/iu', $head, $match) === 1) {
+            $candidate->email = $match[0];
+            $taken[] = 'e-mail';
+        }
+
+        if (blank($candidate->photo_path) && ($photo = $photos->extract(Storage::disk($this->disk)->path($this->path))) !== null) {
+            $path = 'candidates/photos/'.$candidate->slug.'.'.$photo['extension'];
+            Storage::disk('local')->put($path, $photo['contents']);
+            $candidate->photo_path = $path;
+            $taken[] = 'pasfoto';
+        }
+
+        $candidate->save();
+
+        return $taken;
     }
 }

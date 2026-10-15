@@ -74,7 +74,7 @@ it('imports a master cv as an unapproved draft without sending personal data to 
         ->and($profile->isApproved())->toBeFalse()
         ->and($profile->data['werkervaring'])->toHaveCount(2)
         ->and($profile->skills_vocabulary)->toContain('laravel', 'kubernetes')
-        ->and($profile->prompt_version)->toBe('cv-importer.v1')
+        ->and($profile->prompt_version)->toBe('cv-importer.v2')
         ->and($candidate->refresh()->active_profile_id)->toBeNull();
 
     Http::assertSent(function ($request): bool {
@@ -128,4 +128,36 @@ it('refuses to approve an invalid profile', function () {
 
     expect(app(ApproveMasterProfile::class)->handle($profile, null))->not->toBe([])
         ->and($profile->refresh()->isApproved())->toBeFalse();
+});
+
+it('takes over phone, e-mail and photo locally without sending them to the model', function () {
+    Storage::fake('local');
+    Http::fake(['ollama.test/*' => Http::response(ollamaReply(json_encode(profileFixture())))]);
+    aiProfile();
+    $candidate = Candidate::factory()->create(['phone' => null, 'email' => null, 'photo_path' => null]);
+
+    $path = Storage::disk('local')->path('cv-met-foto.docx');
+    $word = new PhpWord;
+    $section = $word->addSection();
+    $section->addText('ALEX VOORBEELD');
+    $section->addText('Utrecht | +31 (0)6 12345678 | alex@example.com | Rijbewijs B');
+    $image = sys_get_temp_dir().'/pz-foto-'.uniqid().'.png';
+    imagepng(imagecreatetruecolor(20, 20), $image);
+    $section->addImage($image);
+    IOFactory::createWriter($word, 'Word2007')->save($path);
+
+    $run = RunTracker::queue(AiTask::Cv, CvImporter::class, $candidate, null, ImportMasterCvJob::STEPS);
+    ImportMasterCvJob::dispatch($run->id(), $candidate->id, 'cv-met-foto.docx');
+
+    $candidate->refresh();
+
+    expect($candidate->phone)->toBe('+31 (0)6 12345678')
+        ->and($candidate->email)->toBe('alex@example.com')
+        ->and($candidate->photo_path)->toStartWith('candidates/photos/')
+        ->and(Storage::disk('local')->exists((string) $candidate->photo_path))->toBeTrue()
+        ->and($run->run->refresh()->result['overgenomen'])->toBe(['telefoon', 'e-mail', 'pasfoto']);
+
+    Http::assertSent(fn ($request): bool => ! str_contains($request->body(), '12345678') && ! str_contains($request->body(), 'alex@example.com'));
+
+    @unlink($image);
 });

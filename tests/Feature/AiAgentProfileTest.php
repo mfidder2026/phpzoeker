@@ -1,6 +1,7 @@
 <?php
 
 use App\Ai\Config\AiAgentProfile;
+use App\Filament\Clusters\Settings\Pages\AiAgentSettings;
 use Illuminate\Support\Facades\DB;
 
 it('stores the api key encrypted and remembers only the last four characters', function () {
@@ -49,4 +50,19 @@ it('estimates the cost per million tokens', function () {
 
     expect($profile->estimateCost('model-x', 1_000_000, 100_000))->toBe(4.5)
         ->and($profile->estimateCost('other', 500_000, 500_000))->toBe(1.0);
+});
+
+it('activates the profile from the settings page after confirming the agreement', function () {
+    $profile = aiProfile(['dpa_confirmed_at' => null, 'is_active' => false]);
+    $this->actingAs(beheerder());
+
+    Livewire\Livewire::test(AiAgentSettings::class)
+        ->set('data.dpa_confirmed', true)
+        ->set('data.is_active', true)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($profile->refresh()->is_active)->toBeTrue()
+        ->and($profile->dpa_confirmed_at)->not->toBeNull()
+        ->and($profile->api_key)->toBe('test-secret-key-1234567890abcd');
 });

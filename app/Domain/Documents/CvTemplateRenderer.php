@@ -11,10 +11,14 @@ use RuntimeException;
 
 /**
  * Vult de Fremen-CV-template met een profiel (master of getailord, structuur van Bijlage D).
- * Met het master-profiel reproduceert dit het master-CV 1-op-1 (fase 1).
+ * Met het master-profiel en de opties van {@see self::masterOptions()} reproduceert dit het
+ * oorspronkelijke CV (fase 1).
  */
 class CvTemplateRenderer
 {
+    /** Pasfoto zoals in het bron-CV: 4,04 × 4,04 cm. */
+    private const PHOTO_PIXELS = 153;
+
     public function __construct(private readonly CvSettings $settings) {}
 
     public static function templatePath(string $language = 'nl'): string
@@ -23,40 +27,60 @@ class CvTemplateRenderer
     }
 
     /**
+     * Opties waarmee het master-CV er net zo uitziet als het aangeleverde CV: contactgegevens
+     * van de kandidaat, rijbewijs, nationaliteit en beschikbaarheid in de kop.
+     *
+     * @return array{contact_line: string, show_driving_license: bool, show_nationality: bool, show_availability: bool}
+     */
+    public static function masterOptions(): array
+    {
+        return ['contact_line' => 'candidate', 'show_driving_license' => true, 'show_nationality' => true, 'show_availability' => true];
+    }
+
+    /**
      * @param  array<string, mixed>  $profile  Bijlage D (+ optioneel `aansluiting_op_opdracht`)
-     * @param  array{show_birth_date?: bool, show_city?: bool, show_driving_license?: bool, show_nationality?: bool, footer?: string|null}  $options  privacy-opties per aanbieding (§12.6)
+     * @param  array{contact_line?: string, show_birth_date?: bool, show_city?: bool, show_driving_license?: bool, show_nationality?: bool, show_availability?: bool, footer?: string|null}  $options  privacy-opties per aanbieding (§12.6)
      */
     public function render(Candidate $candidate, array $profile, string $outputPath, array $options = [], string $language = 'nl'): string
     {
         $template = self::templatePath($language);
 
         if (! is_file($template)) {
-            throw new RuntimeException("CV-template ontbreekt: {$template}. Draai `php artisan cv:build-template`.");
+            throw new RuntimeException("CV-template ontbreekt: {$template}. Draai `php artisan cv:build-template <bron-cv.docx>`.");
         }
 
         WordSettings::setOutputEscapingEnabled(true);
         $processor = new TemplateProcessor($template);
 
-        $processor->setValue('naam', mb_strtoupper((string) ($profile['naam'] ?? $candidate->name)));
-        $processor->setValue('cv_titel', (string) ($profile['cv_titel'] ?? ''));
-        $processor->setValue('tagline', (string) ($profile['tagline'] ?? ''));
-        $processor->setValue('contactregel', $this->contactLine($candidate, $options));
-        $processor->setValue('extra_regel', $this->extraLine($candidate, $options));
-        $processor->setValue('profieltekst', (string) ($profile['profieltekst'] ?? ''));
-        $processor->setValue('voetregel', (string) ($options['footer'] ?? $this->settings->footer_text));
+        $headings = (array) ($profile['sectiekoppen'] ?? []);
+        $upper = fn (mixed $value, string $default): string => mb_strtoupper(filled($value) ? (string) $value : $default);
+
+        $processor->setValues([
+            'naam' => mb_strtoupper((string) ($profile['naam'] ?? $candidate->name)),
+            'cv_titel' => (string) ($profile['cv_titel'] ?? ''),
+            'tagline' => (string) ($profile['tagline'] ?? ''),
+            'contactregel' => $this->contactLine($candidate, $options),
+            'extra_regel' => $this->extraLine($candidate, $options),
+            'kop_profiel' => 'PROFESSIONEEL PROFIEL',
+            'kop_kernexpertise' => 'KERNEXPERTISE',
+            'kop_werkervaring' => 'WERKERVARING',
+            'kop_projecten' => 'GESELECTEERDE PROJECTEN',
+            'kop_opleidingen' => $upper($headings['opleidingen'] ?? null, 'Opleidingen & certificaten'),
+            'kop_eerdere_ervaring' => $upper($headings['eerdere_ervaring'] ?? null, 'Eerdere werkervaring'),
+            'kop_talen' => $upper($headings['talen'] ?? null, 'Talen & aanvullende vaardigheden'),
+            'voetregel' => (string) ($options['footer'] ?? ($profile['voetregel'] ?? null) ?? $this->settings->footer_text),
+        ]);
 
         $this->photo($processor, $candidate);
+        $this->profileText($processor, (string) ($profile['profieltekst'] ?? ''));
         $this->expertise($processor, (array) ($profile['kernexpertise'] ?? []));
         $this->workExperience($processor, (array) ($profile['werkervaring'] ?? []));
         $this->projects($processor, (array) ($profile['projecten'] ?? []));
         $this->fit($processor, (array) ($profile['aansluiting_op_opdracht'] ?? []));
+        $this->extraSections($processor, (array) ($profile['aanvullende_secties'] ?? []));
         $this->education($processor, (array) ($profile['opleidingen'] ?? []), (array) ($profile['certificaten'] ?? []));
         $this->earlierExperience($processor, (array) ($profile['eerdere_ervaring'] ?? []));
-
-        $processor->setValue('talen', collect((array) ($profile['talen'] ?? []))
-            ->map(fn (array $language): string => $language['taal'].' ('.$language['niveau'].')')
-            ->implode(' · '));
-        $processor->setValue('vaardigheden', implode(' · ', (array) ($profile['overige_vaardigheden'] ?? [])));
+        $this->languagesAndSkills($processor, (array) ($profile['talen'] ?? []), (array) ($profile['overige_vaardigheden'] ?? []));
 
         if (! is_dir(dirname($outputPath))) {
             mkdir(dirname($outputPath), 0775, true);
@@ -78,7 +102,7 @@ class CvTemplateRenderer
             $parts[] = (string) $candidate->city;
         }
 
-        if ($this->settings->contact_line === 'candidate') {
+        if (($options['contact_line'] ?? $this->settings->contact_line) === 'candidate') {
             $parts[] = (string) $candidate->phone;
             $parts[] = (string) $candidate->email;
         } else {
@@ -95,7 +119,7 @@ class CvTemplateRenderer
     }
 
     /**
-     * Geboortedatum alleen als dat expliciet aanstaat (R4); nationaliteit alleen bij screening.
+     * Nationaliteit alleen bij screening; geboortedatum alleen als dat expliciet aanstaat (R4).
      *
      * @param  array<string, mixed>  $options
      */
@@ -104,7 +128,11 @@ class CvTemplateRenderer
         $parts = [];
 
         if (($options['show_nationality'] ?? false) && filled($candidate->nationality)) {
-            $parts[] = 'Nationaliteit: '.$candidate->nationality;
+            $parts[] = self::nationality((string) $candidate->nationality);
+        }
+
+        if ($options['show_availability'] ?? true) {
+            $parts[] = 'Beschikbaar: '.($candidate->isAvailableImmediately() ? '' : 'vanaf '.$candidate->available_from?->format('d-m-Y').', ').$candidate->hours_per_week.' uur per week';
         }
 
         if (($options['show_birth_date'] ?? $this->settings->show_birth_date) && filled($candidate->birth_date)) {
@@ -114,17 +142,35 @@ class CvTemplateRenderer
         return implode(' | ', $parts);
     }
 
+    /**
+     * "Nederlands" → "Nederlandse nationaliteit"; een afwijkende vorm blijft "Nationaliteit: …".
+     */
+    public static function nationality(string $nationality): string
+    {
+        return preg_match('/(s|sch)$/u', $nationality) === 1 ? $nationality.'e nationaliteit' : 'Nationaliteit: '.$nationality;
+    }
+
     private function photo(TemplateProcessor $processor, Candidate $candidate): void
     {
         $path = $candidate->photo_path !== null ? storage_path('app/private/'.$candidate->photo_path) : null;
 
         if ($path !== null && is_file($path)) {
-            $processor->setImageValue('foto', ['path' => $path, 'width' => 105, 'height' => 130, 'ratio' => true]);
+            $processor->setImageValue('foto', ['path' => $path, 'width' => self::PHOTO_PIXELS, 'height' => self::PHOTO_PIXELS, 'ratio' => true]);
 
             return;
         }
 
         $processor->setValue('foto', '');
+    }
+
+    /**
+     * Elke regel van het profiel wordt een eigen alinea.
+     */
+    private function profileText(TemplateProcessor $processor, string $text): void
+    {
+        $paragraphs = array_values(array_filter(array_map('trim', preg_split('/\R+/', $text) ?: []), fn (string $line): bool => $line !== ''));
+
+        $processor->cloneBlock('profiel', 0, true, false, self::escape(array_map(fn (string $line): array => ['profiel_alinea' => $line], $paragraphs ?: [''])));
     }
 
     /**
@@ -134,20 +180,35 @@ class CvTemplateRenderer
      */
     private function expertise(TemplateProcessor $processor, array $blocks): void
     {
+        $blocks = array_values(array_filter($blocks, 'is_array'));
         $rows = (int) max(1, ceil(count($blocks) / 2));
         $processor->cloneRow('ke_kop_1', $rows);
 
         for ($row = 1; $row <= $rows; $row++) {
             foreach ([1, 2] as $column) {
                 $block = $blocks[($row - 1) * 2 + ($column - 1)] ?? null;
-                $items = is_array($block) ? collect((array) ($block['items'] ?? []))->map(fn (array $item): string => $item['naam']
-                    .(! empty($item['niveau']) ? ' ('.$item['niveau'].')' : '')
-                    .(! empty($item['sinds']) ? ' sinds '.$item['sinds'] : ''))->implode(' · ') : '';
 
                 $processor->setValue("ke_kop_{$column}#{$row}", is_array($block) ? (string) ($block['kop'] ?? '') : '');
-                $processor->setValue("ke_items_{$column}#{$row}", $items);
+                $processor->setValue("ke_items_{$column}#{$row}", is_array($block) ? self::expertiseItems((array) ($block['items'] ?? [])) : '');
             }
         }
+    }
+
+    /**
+     * "Docker (sinds 2017) · Kubernetes (basis)".
+     *
+     * @param  array<int, mixed>  $items
+     */
+    public static function expertiseItems(array $items): string
+    {
+        return collect($items)->filter(fn (mixed $item): bool => is_array($item))->map(function (array $item): string {
+            $details = array_filter([
+                ! empty($item['niveau']) ? (string) $item['niveau'] : null,
+                ! empty($item['sinds']) ? 'sinds '.$item['sinds'] : null,
+            ]);
+
+            return (string) $item['naam'].($details !== [] ? ' ('.implode(', ', $details).')' : '');
+        })->implode(' · ');
     }
 
     /**
@@ -160,18 +221,15 @@ class CvTemplateRenderer
 
         foreach ($entries as $index => $entry) {
             $i = $index + 1;
+            $subtitle = filled($entry['subtitel'] ?? null) ? (string) $entry['subtitel'] : (filled($entry['via'] ?? null) ? 'Via '.$entry['via'] : '');
+
             $processor->setValue("we_periode#{$i}", self::period((string) $entry['van'], (string) $entry['tot']));
             $processor->setValue("we_functie#{$i}", (string) $entry['functie']);
-            $processor->setValue("we_organisatie#{$i}", (string) $entry['organisatie'].(! empty($entry['via']) ? ' (via '.$entry['via'].')' : ''));
-            $processor->setValue("we_subtitel#{$i}", (string) ($entry['subtitel'] ?? ''));
-            $processor->setValue("we_technologie#{$i}", ! empty($entry['technologieen']) ? 'Technologie: '.implode(', ', (array) $entry['technologieen']) : '');
+            $processor->setValue("we_organisatie#{$i}", (string) $entry['organisatie']);
+            $processor->setValue("we_subtitel#{$i}", $subtitle);
 
-            $bullets = array_values((array) ($entry['bullets'] ?? []));
-            $processor->cloneBlock("we_bullets#{$i}", count($bullets), true, true);
-
-            foreach ($bullets as $bulletIndex => $bullet) {
-                $processor->setValue("we_bullet#{$i}#".($bulletIndex + 1), (string) $bullet);
-            }
+            $bullets = array_values(array_map('strval', (array) ($entry['bullets'] ?? [])));
+            $processor->cloneBlock("we_bullets#{$i}", 0, true, false, self::escape(array_map(fn (string $bullet): array => ["we_bullet#{$i}" => $bullet], $bullets)));
         }
     }
 
@@ -182,11 +240,18 @@ class CvTemplateRenderer
     {
         $projects = array_values(array_filter($projects, 'is_array'));
 
-        $processor->cloneBlock('projecten', 0, true, false, array_map(fn (array $project): array => [
-            'pr_naam' => (string) $project['naam'].(! empty($project['periode']) ? ' · '.$project['periode'] : ''),
-            'pr_omschrijving' => (string) ($project['omschrijving'] ?? ''),
-            'pr_technologie' => ! empty($project['technologieen']) ? 'Technologie: '.implode(', ', (array) $project['technologieen']) : '',
-        ], $projects));
+        $processor->cloneBlock('projecten', 0, true, false, self::escape(array_map(function (array $project): array {
+            $suffix = array_values(array_filter([$project['periode'] ?? null, $project['subtitel'] ?? null], 'filled'));
+            $technologies = array_values((array) ($project['technologieen'] ?? []));
+
+            return [
+                'pr_naam' => (string) $project['naam'],
+                'pr_suffix' => $suffix === [] ? '' : '  ·  '.implode('  ·  ', $suffix),
+                'pr_omschrijving' => (string) ($project['omschrijving'] ?? ''),
+                'pr_tech_label' => $technologies === [] ? '' : 'Technologie: ',
+                'pr_technologie' => implode(' · ', $technologies),
+            ];
+        }, $projects)));
     }
 
     /**
@@ -204,13 +269,37 @@ class CvTemplateRenderer
             return;
         }
 
-        $processor->cloneBlock('aansluiting', 0, true, false, array_map(fn (array $row): array => [
+        $processor->cloneBlock('aansluiting', 1);
+        $processor->cloneBlock('aa_rijen', 0, true, false, self::escape(array_map(fn (array $row): array => [
             'aa_eis' => (string) ($row['eis'] ?? ''),
             'aa_invulling' => (string) ($row['invulling'] ?? ''),
-        ], $rows));
+        ], $rows)));
     }
 
     /**
+     * Aanvullende secties (bijv. "AI-augmented engineering"): kop + bullets in twee kolommen.
+     *
+     * @param  array<int, mixed>  $sections
+     */
+    private function extraSections(TemplateProcessor $processor, array $sections): void
+    {
+        $sections = array_values(array_filter($sections, fn (mixed $section): bool => is_array($section) && ! empty($section['items'])));
+        $processor->cloneBlock('extra_secties', count($sections), true, true);
+
+        foreach ($sections as $index => $section) {
+            $i = $index + 1;
+            $items = array_values(array_map('strval', (array) $section['items']));
+            $half = (int) ceil(count($items) / 2);
+
+            $processor->setValue("es_kop#{$i}", mb_strtoupper((string) $section['kop']));
+            $processor->cloneBlock("es_links#{$i}", 0, true, false, self::escape(array_map(fn (string $item): array => ["es_li#{$i}" => $item], array_slice($items, 0, $half))));
+            $processor->cloneBlock("es_rechts#{$i}", 0, true, false, self::escape(array_map(fn (string $item): array => ["es_ri#{$i}" => $item], array_slice($items, $half))));
+        }
+    }
+
+    /**
+     * Opleidingen in de volgorde van het profiel (= het CV), daarna losse certificaten.
+     *
      * @param  array<int, mixed>  $education
      * @param  array<int, mixed>  $certificates
      */
@@ -220,10 +309,14 @@ class CvTemplateRenderer
 
         foreach ($education as $item) {
             if (is_array($item)) {
-                $rows[] = [
-                    'opl_periode' => (string) ($item['periode'] ?? ''),
-                    'opl_naam' => (string) $item['naam'].(! empty($item['instelling']) ? ', '.$item['instelling'] : '').(($item['status'] ?? '') === 'lopend' ? ' (lopend)' : ''),
-                ];
+                $name = (string) $item['naam'];
+                $institution = (string) ($item['instelling'] ?? '');
+
+                if ($institution !== '' && ! str_contains($name, $institution)) {
+                    $name .= ', '.$institution;
+                }
+
+                $rows[] = ['opl_periode' => (string) ($item['periode'] ?? ''), 'opl_naam' => $name.(($item['status'] ?? '') === 'lopend' && ! str_contains($name, 'lopend') ? ' (lopend)' : '')];
             }
         }
 
@@ -244,10 +337,38 @@ class CvTemplateRenderer
         $rows = array_values(array_map(fn (array $entry): array => [
             'ee_periode' => (string) ($entry['periode'] ?? ''),
             'ee_functie' => (string) ($entry['functie'] ?? ''),
-            'ee_organisatie' => (string) ($entry['organisatie'] ?? ''),
+            'ee_organisatie' => (string) ($entry['organisatie'] ?? '').(filled($entry['omschrijving'] ?? null) ? ' - '.$entry['omschrijving'] : ''),
         ], array_filter($entries, 'is_array')));
 
         $rows === [] ? $processor->deleteRow('ee_periode') : $processor->cloneRowAndSetValues('ee_periode', $rows);
+    }
+
+    /**
+     * @param  array<int, mixed>  $languages
+     * @param  array<int, mixed>  $skills
+     */
+    private function languagesAndSkills(TemplateProcessor $processor, array $languages, array $skills): void
+    {
+        $processor->cloneBlock('talen_blok', 0, true, false, self::escape(array_values(array_map(fn (array $language): array => [
+            'taal_naam' => (string) $language['taal'].': ',
+            'taal_niveau' => (string) ($language['niveau'] ?? ''),
+        ], array_filter($languages, 'is_array')))));
+
+        $processor->cloneBlock('vaardigheden_blok', 0, true, false, self::escape(array_values(array_map(fn (mixed $skill): array => [
+            'vaardigheid' => (string) $skill,
+        ], $skills))));
+    }
+
+    /**
+     * PhpWord escapet waarden in `cloneBlock`-vervangingen niet; zonder dit levert een `&` een
+     * kapot Word-bestand op.
+     *
+     * @param  array<int, array<string, string>>  $replacements
+     * @return array<int, array<string, string>>
+     */
+    private static function escape(array $replacements): array
+    {
+        return array_map(fn (array $row): array => array_map(fn (string $value): string => htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8'), $row), $replacements);
     }
 
     /**

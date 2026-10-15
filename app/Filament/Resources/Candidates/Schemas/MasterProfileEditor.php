@@ -71,6 +71,7 @@ class MasterProfileEditor
                                 TextInput::make('id')->label('ID')->required(),
                                 TextInput::make('naam')->label('Naam')->required(),
                                 TextInput::make('periode')->label('Periode'),
+                                TextInput::make('subtitel')->label('Subtitel')->columnSpanFull(),
                             ]),
                             Textarea::make('omschrijving')->label('Omschrijving')->rows(3),
                             TagsInput::make('technologieen')->label('Technologieën'),
@@ -100,6 +101,18 @@ class MasterProfileEditor
                         TextInput::make('niveau')->label('Niveau')->required(),
                     ]),
                     TagsInput::make('data.overige_vaardigheden')->label('Overige vaardigheden'),
+                    Repeater::make('data.aanvullende_secties')->label('Aanvullende secties (bijv. AI-augmented engineering)')->addActionLabel('Sectie toevoegen')
+                        ->itemLabel(fn (array $state): ?string => $state['kop'] ?? null)->collapsible()
+                        ->schema([
+                            TextInput::make('kop')->label('Kop')->required(),
+                            Repeater::make('items')->label('Items')->simple(TextInput::make('tekst')->required())->addActionLabel('Item toevoegen'),
+                        ]),
+                    Grid::make(3)->schema([
+                        TextInput::make('data.sectiekoppen.opleidingen')->label('Kop opleidingen')->placeholder('Opleidingen & certificaten'),
+                        TextInput::make('data.sectiekoppen.eerdere_ervaring')->label('Kop eerdere ervaring')->placeholder('Eerdere werkervaring'),
+                        TextInput::make('data.sectiekoppen.talen')->label('Kop talen')->placeholder('Talen & aanvullende vaardigheden'),
+                    ]),
+                    TextInput::make('data.voetregel')->label('Slotregel onderaan het CV'),
                 ]),
             ]),
         ];

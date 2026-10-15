@@ -44,7 +44,7 @@ enum AiTask: string implements HasLabel
             self::Extract => 4000,
             self::Match => 4000,
             self::Research => 3000,
-            self::Cv => 8000,
+            self::Cv => 16000,
             self::Grounding => 3000,
             self::Mail => 1500,
             self::ConnectionTest => 20,

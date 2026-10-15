@@ -55,7 +55,7 @@ class CvImporter
     {
         $data = [...CandidateProfileSchema::empty(), ...$data];
 
-        foreach (['kernexpertise', 'werkervaring', 'projecten', 'opleidingen', 'certificaten', 'eerdere_ervaring', 'talen', 'overige_vaardigheden'] as $list) {
+        foreach (['kernexpertise', 'werkervaring', 'projecten', 'opleidingen', 'certificaten', 'eerdere_ervaring', 'talen', 'overige_vaardigheden', 'aanvullende_secties'] as $list) {
             $data[$list] = is_array($data[$list]) ? array_values($data[$list]) : [];
         }
 
@@ -73,8 +73,12 @@ class CvImporter
 
         foreach ($data['projecten'] as $index => $entry) {
             if (is_array($entry)) {
-                $data['projecten'][$index] = ['technologieen' => [], 'periode' => null, 'omschrijving' => '', ...$entry];
+                $data['projecten'][$index] = ['technologieen' => [], 'periode' => null, 'subtitel' => null, 'omschrijving' => '', ...$entry];
             }
+        }
+
+        if (! is_array($data['sectiekoppen'])) {
+            $data['sectiekoppen'] = CandidateProfileSchema::empty()['sectiekoppen'];
         }
 
         return $data;
