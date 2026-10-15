@@ -4,8 +4,8 @@ Opdrachtenradar en aanbiedingsassistent voor Fremen-developers. Eén Filament-we
 (Laravel 13, Filament 5). Het ontwerp staat lokaal in `docs/ontwerp/` (niet in git: bevat persoonsgegevens); beslissingen in
 [`docs/DECISIONS.md`](docs/DECISIONS.md); wat er per fase is opgeleverd in [`CHANGELOG.md`](CHANGELOG.md).
 
-**Stand:** fase 0 (fundering) en fase 1 (webapp, AI-agent, kandidaten, master-CV) zijn gebouwd. Ingest,
-matching en aanbiedingen volgen in fase 2–4 en staan al als "Volgt in fase x" in het menu.
+**Stand:** fase 0–3 zijn gebouwd: fundering, webapp met AI-agent en master-CV's, ingest van opdrachten, en matching
+met meldingen. Aanbiedingen (fase 4) en rapportages (fase 5) staan al als "Volgt in fase x" in het menu.
 
 ## Lokaal starten (zonder Docker)
 
@@ -51,6 +51,21 @@ Kwaliteit van de extractie meten (kost tokens):
 
 ```bash
 php artisan eval:extraction
+```
+
+## Matching en meldingen
+
+Elke nieuwe of bijgewerkte opdracht wordt automatisch gematcht met alle actieve kandidaten die een goedgekeurd
+master-profiel hebben: voorselectie en harde filters zonder AI, daarna een AI-beoordeling per eis en wens, en een
+score met opbouw (instellingen in **Instellingen → Matching**). Resultaten staan in **Werk → Matches**, op het
+tabblad *Matches* van een opdracht en in de **Shortlist**-kanban. Sterke matches geven direct een melding; de
+digest gaat op werkdagen om 08:00 (instelbaar in **Instellingen → Meldingen**). De worker moet daarvoor draaien
+(`queue:work --queue=ai,ingest,documents,mail,default`), net als de scheduler.
+
+Kwaliteit van de matching meten (kost tokens; de door Fremen gelabelde set hoort in `storage/app/private/eval/matching`):
+
+```bash
+php artisan eval:matching --map=senior=mark-van-der-zande --map=medior=sten-nierop
 ```
 
 ## Kwaliteit

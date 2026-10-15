@@ -1,5 +1,19 @@
 # Changelog
 
+## [Fase 3 — matching en meldingen] — 15-10-2026
+
+### Toegevoegd
+- Matching per opdracht × kandidaat (§10): voorselectie zonder AI, harde filters (status, beschikbaarheid, uren, contractvorm, deadline, afwezigheid, reistijd) met de reden erbij, AI-beoordeling per eis en wens met bewijs uit het master-profiel (`MatchAssessor`, Bijlage C, prompt `match-assessor.v2`), score 0–100 met opbouw per component en labels sterk / mogelijk / zwak / afgevallen.
+- Eerlijk rekenen met jaren: jaren per technologie worden uit de periodes in het profiel berekend; een tekort maakt de eis "voldoet niet" (D30). Knock-out overrulen kan alleen met reden.
+- Automatisch matchen bij een nieuwe of bijgewerkte opdracht; herberekenen bij een wijziging van kandidaatwaardes, zoekprofiel, afwezigheid of master-profiel, en elke nacht om 02:00. Gewichten wijzigen herberekent alleen de score, zonder AI.
+- Scherm **Matches** (filters op kandidaat, label, status, advies, knock-out, deadline) met detail: score-opbouw, harde filters, eisen/wensen-matrix, sterke punten en risico's, waarschuwingen (o.a. "Tarief boven maximum"), feedback 👍/👎 met reden, shortlist, afwijzen, opnieuw beoordelen. Een kandidaat ziet alleen de eigen matches en kan interesse aangeven.
+- **Shortlist**-kanban (Nieuw → Shortlist → Afgewezen; de kolommen voor aanbiedingen volgen in fase 4).
+- Opdracht-detail: tabblad *Matches*; opdrachtenlijst: beste score per kandidaat, filters "Match met kandidaat" en "Score 60 of hoger", knop **Matchen**.
+- Dashboard: sterke matches vandaag, shortlist-deadlines binnen 24 uur, "Actie nodig" met sterke matches.
+- Meldingen: directe melding bij een sterke match (urgent bij deadline < 48 uur), deadline-herinnering voor de shortlist (< 24 uur), dagelijkse digest op werkdagen om 08:00, budgetwaarschuwing bij 80% en 100%.
+- AI-budget: matching pauzeert eerder dan extractie (D32).
+- Instellingen: technologie-aliassen, reserve voor extractie, maximum aantal beoordelingen per herberekening, mail bij directe meldingen, urenvensters voor urgent en herinnering.
+- `php artisan eval:matching` met een voorbeeld-evaluatieset; 48 nieuwe tests (180 totaal).
 ## [Fase 2 — ingest en opdrachten] — 15-10-2026
 
 ### Toegevoegd

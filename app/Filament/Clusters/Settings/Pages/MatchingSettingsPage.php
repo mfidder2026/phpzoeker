@@ -2,10 +2,13 @@
 
 namespace App\Filament\Clusters\Settings\Pages;
 
+use App\Domain\Matching\Jobs\RescoreMatchesJob;
 use App\Settings\MatchingSettings;
 use BackedEnum;
 use Closure;
+use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
@@ -38,6 +41,18 @@ class MatchingSettingsPage extends BaseSettingsPage
         'hours' => 'Uren/start/duur',
     ];
 
+    /**
+     * Gewichten of drempels gewijzigd → alleen scores en labels opnieuw berekenen (§10.6).
+     */
+    protected function afterSave(): void
+    {
+        parent::afterSave();
+
+        RescoreMatchesJob::dispatch();
+
+        Notification::make()->info()->title('Scores worden opnieuw berekend')->body('Zonder nieuwe AI-aanroepen.')->send();
+    }
+
     public function form(Schema $schema): Schema
     {
         $weightFields = [];
@@ -61,7 +76,16 @@ class MatchingSettingsPage extends BaseSettingsPage
             Section::make('Gewichten (§10.3)')->description('Samen 100. Een wijziging herberekent alleen de score, zonder nieuwe AI-aanroep.')->columns(4)->schema($weightFields),
             Section::make('Filters')->columns(2)->schema([
                 TextInput::make('start_date_tolerance_days')->label('Tolerantie startdatum (dagen)')->numeric()->minValue(0)->required(),
-                TextInput::make('embedding_prefilter_threshold')->label('Embedding-prefilterdrempel')->numeric()->minValue(0)->maxValue(1)->step(0.01)->required(),
+                TextInput::make('embedding_prefilter_threshold')->label('Embedding-prefilterdrempel')->numeric()->minValue(0)->maxValue(1)->step(0.01)->required()
+                    ->helperText('Wordt gebruikt zodra embeddings beschikbaar zijn (D29); de prefilter werkt nu met trefwoorden en technologie.'),
+            ]),
+            Section::make('AI-kosten')->columns(2)->schema([
+                TextInput::make('extraction_budget_reserve_percent')->label('Reserve voor extractie (% van het dagbudget)')->numeric()->minValue(0)->maxValue(100)->suffix('%')->required()
+                    ->helperText('Matching pauzeert als alleen deze reserve nog over is; extractie gaat voor (§18.3).'),
+                TextInput::make('max_assessments_per_run')->label('Max. AI-beoordelingen per herberekening van één kandidaat')->numeric()->minValue(0)->required(),
+            ]),
+            Section::make('Technologie-aliassen')->description('Namen die als dezelfde technologie tellen, bijv. postgres → postgresql. Kleine letters.')->collapsed()->schema([
+                KeyValue::make('technology_aliases')->hiddenLabel()->keyLabel('Alias')->valueLabel('Telt als')->reorderable(false),
             ]),
         ]);
     }

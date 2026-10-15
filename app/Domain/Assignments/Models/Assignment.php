@@ -6,6 +6,7 @@ use App\Domain\Assignments\Enums\AssignmentContractType;
 use App\Domain\Assignments\Enums\AssignmentStatus;
 use App\Domain\Assignments\Enums\Sector;
 use App\Domain\Assignments\Enums\WorkMode;
+use App\Domain\Matching\Models\CandidateMatch;
 use App\Domain\Relations\Models\Organization;
 use App\Domain\Sources\Models\RawPosting;
 use Illuminate\Database\Eloquent\Builder;
@@ -129,6 +130,14 @@ class Assignment extends Model
     public function sources(): HasMany
     {
         return $this->hasMany(AssignmentSource::class);
+    }
+
+    /**
+     * @return HasMany<CandidateMatch, $this>
+     */
+    public function matches(): HasMany
+    {
+        return $this->hasMany(CandidateMatch::class);
     }
 
     /**

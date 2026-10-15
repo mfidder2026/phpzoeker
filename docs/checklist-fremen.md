@@ -28,3 +28,10 @@ De app leest het gedeelde postvak **aanvragen@fremen.app** (Microsoft 365). Stap
 
 ## Bronnen
 - [ ] Bronnenrapport (`docs/bronnen.md`) reviewen en per bron een besluit nemen (go/no-go + methode).
+
+## Matching en meldingen (fase 3)
+- [ ] **Evaluatieset**: 30–50 echte opdrachten (geanonimiseerd), per kandidaat gelabeld met *aanbieden*, *twijfel* of *niet*. Formaat: zie `tests/Fixtures/matching`; plaatsen in `storage/app/private/eval/matching` en draaien met `php artisan eval:matching --map=senior=mark-van-der-zande --map=medior=sten-nierop`. Acceptatie: precisie sterke match ≥ 70%.
+- [ ] **Instellingen → Meldingen**: ontvangers van de digest controleren (nu michel@fremen.app) en kiezen of directe meldingen ook per mail gaan.
+- [ ] **Instellingen → Matching**: gewichten, drempels en technologie-aliassen nalopen.
+- [ ] Prijzen per 1 mln. tokens invullen in **Instellingen → AI-agent**, anders werkt de budgetbewaking met € 0.
+- [ ] De eerste weken matches beoordelen met 👍/👎; daarmee worden de gewichten bijgesteld.

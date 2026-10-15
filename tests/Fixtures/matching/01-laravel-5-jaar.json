@@ -1,0 +1,25 @@
+{
+    "opdracht": {
+        "title": "Senior Laravel Developer",
+        "client_name": "Gemeente Voorbeeldstad",
+        "summary": "Doorontwikkeling van een Laravel-zaaksysteem met koppelingen naar landelijke voorzieningen.",
+        "seniority": "senior",
+        "contract_type": "beide",
+        "work_mode": "hybride",
+        "hours_min": 32,
+        "hours_max": 40,
+        "start_asap": true,
+        "max_rate": 100,
+        "deadline_at": "2027-06-30 12:00:00",
+        "technologies": ["PHP", "Laravel", "PostgreSQL", "Docker"],
+        "requirements": [
+            {"id": "E1", "tekst": "Minimaal 5 jaar ervaring met Laravel", "knock_out": true, "categorie": "ervaring", "min_jaren": 5, "technologie": "Laravel"},
+            {"id": "E2", "tekst": "Ervaring met REST-API's", "knock_out": true, "categorie": "techniek"}
+        ],
+        "wishes": [
+            {"id": "W1", "tekst": "Ervaring met PostgreSQL", "categorie": "techniek"},
+            {"id": "W2", "tekst": "Ervaring met Docker", "categorie": "techniek"}
+        ]
+    },
+    "verwacht": {"senior": "aanbieden", "medior": "niet"}
+}

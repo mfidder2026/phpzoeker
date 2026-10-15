@@ -10,6 +10,9 @@ use App\Domain\Assignments\Actions\ReextractAssignment;
 use App\Domain\Assignments\Enums\AssignmentStatus;
 use App\Domain\Assignments\Jobs\ReextractAssignmentJob;
 use App\Domain\Assignments\Models\Assignment;
+use App\Domain\Candidates\Enums\CandidateStatus;
+use App\Domain\Candidates\Models\Candidate;
+use App\Domain\Matching\Jobs\MatchAssignmentJob;
 use App\Domain\Sources\Actions\AddManualPosting;
 use App\Domain\Sources\Enums\SourceType;
 use App\Domain\Sources\Models\Source;
@@ -80,6 +83,31 @@ final class AssignmentActions
                 }
 
                 $livewire->dispatch('ai-run-started', runId: $result['run_id']);
+            });
+    }
+
+    /**
+     * Opnieuw matchen met alle actieve kandidaten (§10.6). Gebruikt een bestaande beoordeling
+     * als de invoer niet veranderd is.
+     */
+    public static function match(): Action
+    {
+        return Action::make('match')
+            ->label('Matchen')
+            ->icon(Heroicon::OutlinedSparkles)
+            ->color('gray')
+            ->visible(fn (Assignment $record): bool => Access::isStaff() && $record->isOpen() && $record->is_relevant)
+            ->action(function (Assignment $record): void {
+                $candidates = Candidate::query()
+                    ->whereIn('status', [CandidateStatus::Beschikbaar->value, CandidateStatus::InProcedure->value])
+                    ->whereNotNull('active_profile_id')
+                    ->pluck('id');
+
+                foreach ($candidates as $candidateId) {
+                    MatchAssignmentJob::dispatch($record->id, $candidateId, startedBy: Access::user()?->id);
+                }
+
+                Notification::make()->success()->title('Matching gestart voor '.$candidates->count().' kandidaten')->body('De voortgang staat bij AI-activiteit.')->send();
             });
     }
 

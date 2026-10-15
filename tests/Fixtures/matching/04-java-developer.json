@@ -1,0 +1,23 @@
+{
+    "opdracht": {
+        "title": "Java Developer Spring Boot",
+        "client_name": "Uitvoeringsorganisatie Voorbeeld",
+        "summary": "Ontwikkeling van microservices in Java met Spring Boot en Kafka.",
+        "seniority": "senior",
+        "contract_type": "beide",
+        "hours_min": 36,
+        "hours_max": 40,
+        "start_asap": true,
+        "max_rate": 105,
+        "deadline_at": "2027-06-30 12:00:00",
+        "technologies": ["Java", "Spring Boot", "Kafka", "Kubernetes"],
+        "requirements": [
+            {"id": "E1", "tekst": "Minimaal 5 jaar ervaring met Java", "knock_out": true, "categorie": "ervaring", "min_jaren": 5, "technologie": "Java"},
+            {"id": "E2", "tekst": "Ervaring met Spring Boot", "knock_out": true, "categorie": "techniek"}
+        ],
+        "wishes": [
+            {"id": "W1", "tekst": "Ervaring met Kafka", "categorie": "techniek"}
+        ]
+    },
+    "verwacht": {"senior": "niet", "medior": "niet"}
+}

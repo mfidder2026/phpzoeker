@@ -7,7 +7,6 @@ use Carbon\CarbonInterface;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\ViewEntry;
 use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
@@ -82,8 +81,10 @@ class AssignmentInfolist
                     ->badge(fn (Assignment $record): int => count($record->requirements ?? []) + count($record->wishes ?? []))
                     ->schema([
                         ViewEntry::make('requirements')->hiddenLabel()->view('filament.assignments.requirements'),
-                        Section::make('Matches per kandidaat')->description('De beoordeling per eis met bewijs uit het master-profiel volgt in fase 3.')->collapsed()->schema([]),
                     ]),
+                Tab::make('Matches')->icon('heroicon-o-sparkles')
+                    ->badge(fn (Assignment $record): ?string => ($best = $record->matches()->max('score')) !== null ? (string) $best : null)
+                    ->schema([ViewEntry::make('matches')->hiddenLabel()->view('filament.assignments.matches')]),
                 Tab::make('Originele tekst')->icon('heroicon-o-document')->schema([
                     TextEntry::make('description_text')->hiddenLabel()->placeholder('Geen tekst')
                         ->extraAttributes(['style' => 'white-space: pre-line; max-width: 80ch']),

@@ -7,6 +7,9 @@ use App\Domain\Assignments\Enums\AssignmentStatus;
 use App\Domain\Assignments\Enums\Sector;
 use App\Domain\Assignments\Enums\WorkMode;
 use App\Domain\Assignments\Models\Assignment;
+use App\Domain\Candidates\Models\Candidate;
+use App\Domain\Matching\Enums\MatchLabel;
+use App\Domain\Matching\Models\CandidateMatch;
 use App\Domain\Sources\Models\Source;
 use App\Filament\Resources\Assignments\AssignmentActions;
 use Carbon\CarbonInterface;
@@ -21,7 +24,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * Opdrachtenlijst met de filters uit FR-O6 (score en kandidaat volgen in fase 3).
+ * Opdrachtenlijst met de filters uit FR-O6, inclusief beste score en kandidaat.
  */
 class AssignmentsTable
 {
@@ -30,7 +33,7 @@ class AssignmentsTable
         return $table
             ->defaultSort('created_at', 'desc')
             ->poll('30s')
-            ->modifyQueryUsing(fn (Builder $query) => $query->withCount('sources'))
+            ->modifyQueryUsing(fn (Builder $query) => $query->withCount('sources')->with(['matches.candidate']))
             ->columns([
                 TextColumn::make('title')->label('Opdracht')->searchable(['title', 'client_name', 'intermediary_name', 'reference'])->wrap()
                     ->weight('semibold')
@@ -47,6 +50,11 @@ class AssignmentsTable
                 TextColumn::make('deadline_at')->label('Deadline')->dateTime('d-m-Y H:i')->sortable()->placeholder('—')
                     ->description(fn (Assignment $record): ?string => $record->deadline_at === null ? null : ($record->deadline_at->isPast() ? 'verlopen' : 'nog '.$record->deadline_at->diffForHumans(syntax: CarbonInterface::DIFF_ABSOLUTE)))
                     ->color(fn (Assignment $record): ?string => $record->deadline_at !== null && $record->deadline_at->isFuture() && $record->deadline_at->lt(now()->addDay()) ? 'danger' : null),
+                TextColumn::make('best_matches')->label('Matches')->badge()
+                    ->state(fn (Assignment $record): array => $record->matches->sortByDesc('score')
+                        ->map(fn (CandidateMatch $match): string => $match->candidate->initials().' '.$match->score)->values()->all())
+                    ->color(fn (string $state, Assignment $record): string => $record->matches->first(fn (CandidateMatch $match): bool => $match->candidate->initials().' '.$match->score === $state)?->label->getColor() ?? 'gray')
+                    ->placeholder('—'),
                 TextColumn::make('sources_count')->label('Bronnen')->alignCenter(),
                 TextColumn::make('status')->label('Status')->badge(),
                 IconColumn::make('is_relevant')->label('Relevant')->boolean()->toggleable(isToggledHiddenByDefault: true),
@@ -67,6 +75,11 @@ class AssignmentsTable
                 SelectFilter::make('sector')->label('Sector')->options(Sector::class),
                 Filter::make('deadline_soon')->label('Deadline binnen 7 dagen')
                     ->query(fn (Builder $query): Builder => $query->whereBetween('deadline_at', [now(), now()->addDays(7)])),
+                SelectFilter::make('candidate')->label('Match met kandidaat')
+                    ->options(fn (): array => Candidate::query()->orderBy('name')->pluck('name', 'id')->all())
+                    ->query(fn (Builder $query, array $data): Builder => blank($data['value'] ?? null) ? $query : $query->whereHas('matches', fn (Builder $matches) => $matches->where('candidate_id', $data['value'])->where('hard_filter_passed', true)->whereIn('label', [MatchLabel::Sterk->value, MatchLabel::Mogelijk->value]))),
+                Filter::make('min_score')->label('Score 60 of hoger')
+                    ->query(fn (Builder $query): Builder => $query->whereHas('matches', fn (Builder $matches) => $matches->where('score', '>=', 60))),
                 Filter::make('possible_duplicate')->label('Mogelijk duplicaat')
                     ->query(fn (Builder $query): Builder => $query->whereNotNull('possible_duplicate_of_id')),
             ])
