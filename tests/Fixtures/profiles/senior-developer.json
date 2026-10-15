@@ -1,0 +1,35 @@
+{
+    "naam": "Alex Voorbeeld",
+    "cv_titel": "Senior PHP / Laravel Developer",
+    "tagline": "Laravel & Enterprise PHP | Platform Development",
+    "profieltekst": "Ervaren full stack developer met ruim tien jaar ervaring in PHP en Laravel voor maatwerkplatformen en API-koppelingen.",
+    "kernexpertise": [
+        {"kop": "Backend", "items": [{"naam": "PHP", "niveau": "expert", "sinds": "2012"}, {"naam": "Laravel", "niveau": "expert", "sinds": "2015"}]},
+        {"kop": "Infrastructuur", "items": [{"naam": "Docker", "niveau": "gevorderd", "sinds": "2017"}, {"naam": "Kubernetes", "niveau": "basis", "sinds": null}]},
+        {"kop": "Testen", "items": [{"naam": "Pest", "niveau": null, "sinds": null}]}
+    ],
+    "werkervaring": [
+        {
+            "id": "WE1", "van": "2021-03", "tot": "heden", "functie": "Senior Developer", "organisatie": "Voorbeeldbank",
+            "via": "Fremen", "subtitel": "Bedrijfskritische PKI-omgeving",
+            "bullets": ["Ontwikkeling van het certificatenportaal in Laravel.", "Verwerken van pentestbevindingen & releases via OTAP."],
+            "technologieen": ["PHP", "Laravel", "PostgreSQL"]
+        },
+        {
+            "id": "WE2", "van": "2014", "tot": "2021", "functie": "Developer", "organisatie": "Fremen",
+            "via": null, "subtitel": null,
+            "bullets": ["Maatwerkplatformen en klantportalen."],
+            "technologieen": ["PHP", "MySQL"]
+        }
+    ],
+    "projecten": [
+        {"id": "P1", "naam": "Klantportaal", "omschrijving": "Portaal met koppelingen naar externe API's.", "technologieen": ["Laravel", "Filament"], "periode": "2023"}
+    ],
+    "opleidingen": [
+        {"periode": "2024", "naam": "PHP development", "instelling": "Voorbeeldacademie", "status": "behaald"}
+    ],
+    "certificaten": [{"jaar": "2021", "naam": "Scrum Master"}],
+    "eerdere_ervaring": [{"periode": "2010–2014", "functie": "ICT-beheerder", "organisatie": "Voorbeeld BV", "omschrijving": null}],
+    "talen": [{"taal": "Nederlands", "niveau": "moedertaal"}, {"taal": "Engels", "niveau": "goed"}],
+    "overige_vaardigheden": ["Kennisdeling", "Code review"]
+}

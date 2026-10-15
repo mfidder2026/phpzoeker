@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+
+    services:
+      pgsql:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: phpzoeker_test
+          POSTGRES_USER: phpzoeker
+          POSTGRES_PASSWORD: secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U phpzoeker"
+          --health-interval 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: intl, zip, gd, pdo_pgsql, pdo_sqlite, bcmath, sockets
+          coverage: none
+
+      - name: Composer install
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Pint
+        run: vendor/bin/pint --test
+
+      - name: Larastan (level 8)
+        run: vendor/bin/phpstan analyse --no-progress --memory-limit=2G
+
+      - name: Pest (SQLite)
+        run: vendor/bin/pest
+
+      - name: Pest (PostgreSQL)
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: phpzoeker_test
+          DB_USERNAME: phpzoeker
+          DB_PASSWORD: secret
+        run: vendor/bin/pest
+
+      - name: Migrations roll back cleanly
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: phpzoeker_test
+          DB_USERNAME: phpzoeker
+          DB_PASSWORD: secret
+        run: |
+          php artisan migrate:fresh --force
+          php artisan migrate:rollback --force

@@ -1,0 +1,33 @@
+# Voorbeeld van de seed-data voor kandidaten (geanonimiseerd).
+# Kopieer naar candidates.yaml en vul de echte gegevens in. candidates.yaml staat in .gitignore.
+candidates:
+  - slug: voorbeeld-kandidaat
+    name: Voorbeeld Kandidaat
+    job_title: Senior Developer
+    cv_titles:
+      - "Senior PHP / Laravel Developer"
+    seniority: senior            # junior | medior | senior | lead
+    city: Utrecht
+    birth_date: 1990-01-01       # versleuteld; niet naar LLM; niet voor matching; standaard niet in CV/mail
+    driving_license: true
+    own_transport: null          # null = onbekend
+    available_from: null         # null = per direct
+    hours_per_week: 40
+    hourly_rate: 90.00           # EUR, excl. btw
+    min_hourly_rate: 90.00
+    email: kandidaat@example.com
+    phone: null
+    nationality: null
+    languages: { nl: moedertaal, en: goed }
+    cc_self_on_offers: false
+    absences:
+      - { type: vakantie, starts_on: 2026-12-18, ends_on: 2026-12-31 }
+    search_profile:
+      roles: [Senior PHP Developer]
+      include_keywords: [php, laravel]
+      exclude_keywords: [stage]
+      preferred_tech: [PHP, Laravel]
+      excluded_tech: [COBOL]
+      min_hours: 24
+      max_travel_minutes: null
+      accepted_contract_types: [detachering, zzp, beide]
