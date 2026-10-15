@@ -3,6 +3,7 @@
 namespace App\Domain\Sources;
 
 use App\Domain\Sources\Connectors\FeedConnector;
+use App\Domain\Sources\Connectors\HtmlListingConnector;
 use App\Domain\Sources\Connectors\MailboxAlertConnector;
 use App\Domain\Sources\Connectors\ManualConnector;
 use App\Domain\Sources\Contracts\SourceConnector;
@@ -19,6 +20,7 @@ class ConnectorRegistry
         return match ($type) {
             SourceType::Feed => app(FeedConnector::class),
             SourceType::MailboxAlert => app(MailboxAlertConnector::class),
+            SourceType::Html => app(HtmlListingConnector::class),
             SourceType::Manual => app(ManualConnector::class),
             default => throw new RuntimeException("Voor brontype '{$type->getLabel()}' is nog geen connector gebouwd."),
         };

@@ -47,6 +47,17 @@ class SourceForm
             Section::make('Feed')->visible($isType(SourceType::Feed))->schema([
                 TextInput::make('config.feed_url')->label('Feed-URL (RSS of Atom)')->url()->required(fn (Get $get): bool => self::type($get) === SourceType::Feed),
             ]),
+            Section::make('Overzichtspagina')->visible($isType(SourceType::Html))
+                ->description('Openbare pagina met opdrachten, zonder inloggen (R3). De app volgt robots.txt en haalt daarna per opdracht de openbare pagina op.')
+                ->schema([
+                    TagsInput::make('config.listing_urls')->label('Overzichtspagina\'s')->nestedRecursiveRules(['url'])
+                        ->required(fn (Get $get): bool => self::type($get) === SourceType::Html)
+                        ->helperText('Bij voorkeur gefilterd op ICT en gesorteerd op nieuwste.'),
+                    TextInput::make('config.link_pattern')->label('Linkpatroon (regex op het pad)')->placeholder('#^/vacatures/[a-z0-9-]+/?$#')
+                        ->required(fn (Get $get): bool => self::type($get) === SourceType::Html),
+                    TagsInput::make('config.exclude_patterns')->label('Uitsluiten (regex)')->placeholder('#/feed/?$#'),
+                    TextInput::make('config.max_items')->label('Maximaal aantal per run')->numeric()->minValue(1)->maxValue(200)->default(40),
+                ]),
             Section::make('Mailbox')->visible($isType(SourceType::MailboxAlert))
                 ->description('De mailbox waar aanvragen en job alerts binnenkomen. Elke nieuwe mail wordt een opdracht; er wordt niets verwijderd.')
                 ->columns(3)

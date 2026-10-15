@@ -42,6 +42,31 @@ class SourceSeeder extends Seeder
             'organization_id' => $dpp->id,
         ]);
 
+        $overheidZzp = Organization::query()->firstOrCreate(
+            ['normalized_name' => Organization::normalizeName('OverheidZZP')],
+            ['name' => 'OverheidZZP', 'type' => OrganizationType::Platform, 'website' => 'https://overheidzzp.nl'],
+        );
+
+        Source::query()->firstOrCreate(['key' => 'overheidzzp-ict'], [
+            'name' => 'OverheidZZP — ICT & informatievoorziening',
+            'type' => SourceType::Html,
+            'base_url' => 'https://overheidzzp.nl',
+            'config' => [
+                'listing_urls' => [
+                    'https://overheidzzp.nl/vacatures/?vacancy_tag%5B%5D=ict-informatievoorziening&sort=newest',
+                    'https://overheidzzp.nl/vacatures/?search=developer&sort=newest',
+                ],
+                'link_pattern' => '#^/vacatures/[a-z0-9-]+/?$#',
+                'exclude_patterns' => ['#/feed/?$#'],
+                'max_items' => 40,
+            ],
+            'enabled' => false,
+            'poll_interval_minutes' => 60,
+            'access_method' => 'Openbare overzichtspagina (filter ICT, nieuwste eerst) + openbare opdrachtpagina; geen feed beschikbaar (gecontroleerd 15-10-2026)',
+            'tos_notes' => 'robots.txt (15-10-2026): /vacatures/ en de zoekpagina toegestaan; feeds (*/feed/), /page/ en /search/ uitgesloten, die gebruikt de app niet. Disclaimer: geen bepaling over geautomatiseerde toegang; de pagina Algemene voorwaarden is leeg. Opdrachten zijn openbaar zonder inloggen. Besluit door Fremen.',
+            'organization_id' => $overheidZzp->id,
+        ]);
+
         Source::query()->firstOrCreate(['key' => 'alerts-mailbox'], [
             'name' => 'Aanvragen-mailbox (aanvragen@fremen.app)',
             'type' => SourceType::MailboxAlert,

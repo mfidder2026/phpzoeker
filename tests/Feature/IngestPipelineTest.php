@@ -10,6 +10,7 @@ use App\Domain\Assignments\Models\Assignment;
 use App\Domain\Geo\Geocoder;
 use App\Domain\Sources\Actions\AddManualPosting;
 use App\Domain\Sources\Actions\RunSource;
+use App\Domain\Sources\ConnectorRegistry;
 use App\Domain\Sources\Connectors\FeedConnector;
 use App\Domain\Sources\Enums\RawPostingStatus;
 use App\Domain\Sources\Enums\SourceRunStatus;
@@ -357,4 +358,45 @@ it('reads the alert mailbox and marks mails as processed', function () {
         ->and($postings[0]->meta['kind'])->toBe('alert_mail')
         ->and($postings[1]->meta['kind'])->toBe('forwarded_mail')
         ->and($mailbox->processed)->toBe(['11', '12']);
+});
+
+it('reads postings from a public listing page without a feed', function () {
+    Http::fake([
+        'opdrachten.example.nl/robots.txt' => Http::response("User-agent: *\nDisallow: */feed/\n"),
+        'opdrachten.example.nl/vacatures/*' => Http::response((string) file_get_contents(base_path('tests/Fixtures/listings/overzicht.html'))),
+    ]);
+
+    $source = Source::query()->create([
+        'key' => 'overzicht-test', 'name' => 'Overzicht', 'type' => SourceType::Html, 'base_url' => 'https://opdrachten.example.nl',
+        'config' => [
+            'listing_urls' => ['https://opdrachten.example.nl/vacatures/?vacancy_tag%5B%5D=ict&sort=newest'],
+            'link_pattern' => '#^/vacatures/[a-z0-9-]+/?$#',
+            'exclude_patterns' => ['#/feed/?$#'],
+        ],
+        'tos_reviewed_at' => now(), 'tos_notes' => 'Test', 'enabled' => true,
+    ]);
+
+    $postings = iterator_to_array(app(ConnectorRegistry::class)->for(SourceType::Html)->fetch($source, null));
+
+    expect(array_map(fn ($posting) => $posting->title, $postings))->toBe(['Fullstack developer', 'Connectivity engineer'])
+        ->and(array_map(fn ($posting) => $posting->url, $postings))->toBe([
+            'https://opdrachten.example.nl/vacatures/fullstack-developer/',
+            'https://opdrachten.example.nl/vacatures/connectivity-engineer/',
+        ])
+        ->and($postings[0]->bodyText)->toContain('Sluit op 21-10-2026 10:00')->toContain('36 uur per week')
+        ->and($postings[1]->bodyText)->toContain('Gemeente Voorbeeldstad');
+});
+
+it('refuses a listing page that robots.txt disallows', function () {
+    Http::fake(['opdrachten.example.nl/robots.txt' => Http::response("User-agent: *\nDisallow: /vacatures/\n")]);
+
+    $source = Source::query()->create([
+        'key' => 'overzicht-geblokkeerd', 'name' => 'Overzicht', 'type' => SourceType::Html, 'base_url' => 'https://opdrachten.example.nl',
+        'config' => ['listing_urls' => ['https://opdrachten.example.nl/vacatures/'], 'link_pattern' => '#^/vacatures/[a-z0-9-]+/?$#'],
+        'tos_reviewed_at' => now(), 'tos_notes' => 'Test', 'enabled' => true,
+    ]);
+
+    $result = app(ConnectorRegistry::class)->for(SourceType::Html)->test($source);
+
+    expect($result->passed)->toBeFalse()->and($result->message)->toContain('robots.txt');
 });
