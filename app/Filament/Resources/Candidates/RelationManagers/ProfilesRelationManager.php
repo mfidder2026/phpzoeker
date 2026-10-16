@@ -12,6 +12,7 @@ use App\Domain\Documents\CvTemplateRenderer;
 use App\Filament\Resources\Candidates\Schemas\MasterProfileEditor;
 use App\Filament\Support\Access;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Notifications\Notification;
@@ -133,44 +134,46 @@ class ProfilesRelationManager extends RelationManager
 
                         Notification::make()->success()->title('Versie '.$record->version.' is goedgekeurd en actief')->send();
                     }),
-                Action::make('downloadDocx')->label('Word')
-                    ->icon(Heroicon::OutlinedArrowDownTray)
-                    ->color('gray')
-                    ->tooltip('Master-CV in de Fremen-template (Word)')
-                    ->action(fn (CandidateProfile $record) => response()->download($this->renderDocx($record))->deleteFileAfterSend()),
-                Action::make('downloadPdf')->label('PDF')
-                    ->icon(Heroicon::OutlinedDocumentArrowDown)
-                    ->color('gray')
-                    ->tooltip('Master-CV als PDF (via Gotenberg)')
-                    ->action(function (CandidateProfile $record) {
-                        $docx = $this->renderDocx($record);
+                ActionGroup::make([
+                    Action::make('downloadDocx')->label('Word')
+                        ->icon(Heroicon::OutlinedArrowDownTray)
+                        ->color('gray')
+                        ->tooltip('Master-CV in de Fremen-template (Word)')
+                        ->action(fn (CandidateProfile $record) => response()->download($this->renderDocx($record))->deleteFileAfterSend()),
+                    Action::make('downloadPdf')->label('PDF')
+                        ->icon(Heroicon::OutlinedDocumentArrowDown)
+                        ->color('gray')
+                        ->tooltip('Master-CV als PDF (via Gotenberg)')
+                        ->action(function (CandidateProfile $record) {
+                            $docx = $this->renderDocx($record);
 
-                        try {
-                            $pdf = app(PdfConverter::class)->convert($docx, preg_replace('/\.docx$/', '.pdf', $docx) ?? $docx.'.pdf');
-                        } catch (\RuntimeException $exception) {
-                            Notification::make()->danger()->title('PDF maken lukt niet')->body($exception->getMessage())->send();
+                            try {
+                                $pdf = app(PdfConverter::class)->convert($docx, preg_replace('/\.docx$/', '.pdf', $docx) ?? $docx.'.pdf');
+                            } catch (\RuntimeException $exception) {
+                                Notification::make()->danger()->title('PDF maken lukt niet')->body($exception->getMessage())->send();
 
-                            return null;
-                        } finally {
-                            @unlink($docx);
-                        }
+                                return null;
+                            } finally {
+                                @unlink($docx);
+                            }
 
-                        return response()->download($pdf)->deleteFileAfterSend();
-                    }),
-                Action::make('newVersion')->label('Nieuwe versie')
-                    ->icon(Heroicon::OutlinedDocumentDuplicate)
-                    ->color('gray')
-                    ->visible(fn (CandidateProfile $record): bool => Access::isStaff() && $record->isApproved())
-                    ->action(function (CandidateProfile $record): void {
-                        $this->ownerRecord->profiles()->create([
-                            'version' => $this->ownerRecord->nextProfileVersion(),
-                            'data' => $record->data,
-                            'skills_vocabulary' => $record->skills_vocabulary,
-                            'source_file_path' => $record->source_file_path,
-                        ]);
+                            return response()->download($pdf)->deleteFileAfterSend();
+                        }),
+                    Action::make('newVersion')->label('Nieuwe versie')
+                        ->icon(Heroicon::OutlinedDocumentDuplicate)
+                        ->color('gray')
+                        ->visible(fn (CandidateProfile $record): bool => Access::isStaff() && $record->isApproved())
+                        ->action(function (CandidateProfile $record): void {
+                            $this->ownerRecord->profiles()->create([
+                                'version' => $this->ownerRecord->nextProfileVersion(),
+                                'data' => $record->data,
+                                'skills_vocabulary' => $record->skills_vocabulary,
+                                'source_file_path' => $record->source_file_path,
+                            ]);
 
-                        Notification::make()->success()->title('Conceptversie gemaakt op basis van v'.$record->version)->send();
-                    }),
+                            Notification::make()->success()->title('Conceptversie gemaakt op basis van v'.$record->version)->send();
+                        }),
+                ])->tooltip('Meer'),
             ]);
     }
 

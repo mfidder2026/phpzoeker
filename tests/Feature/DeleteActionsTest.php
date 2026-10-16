@@ -141,3 +141,16 @@ it('deletes an inactive ai profile but never the active one', function () {
     expect($fallback->newQuery()->find($fallback->id))->toBeNull()
         ->and($active->refresh()->is_active)->toBeTrue();
 });
+
+it('keeps phone and birth date when the candidate form is saved', function () {
+    $candidate = Candidate::factory()->create(['phone' => '06-11122233', 'birth_date' => '1985-03-14']);
+
+    $this->actingAs(beheerder());
+
+    Livewire::test(EditCandidate::class, ['record' => $candidate->getRouteKey()])
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($candidate->refresh()->phone)->toBe('06-11122233')
+        ->and($candidate->birth_date)->toBe('1985-03-14');
+});

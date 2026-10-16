@@ -17,6 +17,7 @@ return [
         'assignment-extractor' => 'v2',
         'alert-mail-splitter' => 'v1',
         'match-assessor' => 'v2',
+        'candidate-details' => 'v1',
     ],
 
     /*

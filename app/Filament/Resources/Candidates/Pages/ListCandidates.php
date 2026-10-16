@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Candidates\Pages;
 
+use App\Filament\Resources\Candidates\CandidateActions;
 use App\Filament\Resources\Candidates\CandidateResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
@@ -13,6 +14,7 @@ class ListCandidates extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            CandidateActions::createFromCv(),
             CreateAction::make()->label('Kandidaat toevoegen'),
         ];
     }
