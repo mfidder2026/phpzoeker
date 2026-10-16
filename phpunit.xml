@@ -31,7 +31,7 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
-        <env name="REQUIRE_MFA" value="false"/>
+        <env name="ALLOWED_ACCOUNTS" value=""/>
         <env name="AI_BOOTSTRAP_API_KEY" value=""/>
         <env name="AI_BOOTSTRAP_MODEL" value="test-model"/>
         <env name="MAIL_PASSWORD" value=""/>

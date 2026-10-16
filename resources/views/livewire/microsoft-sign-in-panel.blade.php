@@ -1,7 +1,6 @@
 <div class="pz-signin" @if ($state === 'waiting') wire:poll.5s="check" @endif>
     @if ($state === 'idle')
-        <div class="pz-signin__divider"><span>of</span></div>
-        <x-filament::button wire:click="start" color="gray" class="w-full" icon="heroicon-o-building-office-2">
+        <x-filament::button wire:click="start" class="w-full" icon="heroicon-o-building-office-2">
             Inloggen met Microsoft
         </x-filament::button>
     @elseif ($state === 'waiting')

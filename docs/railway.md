@@ -39,8 +39,8 @@ Bij elke start voert `railway/start.sh` uit: migraties, rollen, de bronnencatalo
 | `LOG_CHANNEL` | `stderr` (logs in Railway) |
 | `PDF_CONVERTER` | `gotenberg` |
 | `GOTENBERG_URL` | `http://gotenberg.railway.internal:3000` |
-| `ADMIN_EMAIL` / `ADMIN_NAME` / `ADMIN_PASSWORD` | eerste beheerder (wachtwoord als *sealed variable*) |
-| `REQUIRE_MFA` | `true` aanbevolen |
+| `ALLOWED_ACCOUNTS` | `michel@fremen.app,mark@fremen.app,sten@fremen.app`: de enige accounts die met Microsoft mogen inloggen (allemaal beheerder) |
+| `ADMIN_EMAIL` / `ADMIN_NAME` | hoofdaccount; bij zijn inlog worden verzenden en de aanvragen-mailbox gekoppeld |
 | `SOURCES_AUTO_FETCH` | `false`: zoeken alleen met de knop **Nu zoeken** |
 | `RUN_SCHEDULER` | `true`: reacties zoeken, herinneringen, digest en bewaartermijnen |
 | `AI_BOOTSTRAP_*`, `MAIL_*` | zoals in `.env.example`; mail kan ook via *Inloggen met Microsoft* |
@@ -49,7 +49,7 @@ Zet geheimen (APP_KEY, wachtwoorden, API-keys) als *sealed variables*. Ze staan 
 
 ## Na de eerste deploy
 
-- Log in met het beheerdersaccount, of met **Inloggen met Microsoft** (dat koppelt ook verzenden en de aanvragen-mailbox).
+- Log in met **Inloggen met Microsoft** (de enige manier van inloggen). Bij het hoofdaccount koppelt dat ook verzenden en de aanvragen-mailbox.
 - Instellingen → AI: controleer het AI-profiel en draai de verbindingstest.
 - Instellingen → Mail: stuur een testmail.
 - Microsoft-login gebruikt een eenmalige code; er is geen redirect-URL nodig, dus het domein maakt niet uit.

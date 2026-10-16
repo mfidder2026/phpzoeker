@@ -4,6 +4,7 @@
 
 ### Toegevoegd
 - **Inloggen met Microsoft** op de inlogpagina; bij een beheerder koppelt dezelfde inlog ook verzenden via Microsoft 365 en de aanvragen-mailbox.
+- **Alleen inloggen met Microsoft**, alleen voor michel@, mark@ en sten@fremen.app (allemaal beheerder); wachtwoordlogin, wachtwoordreset en eigen 2FA zijn uit.
 - **Bronnencatalogus (§8.2) in de app**: alle 33 alert-bronnen (type *Job alert → aanvragen-mailbox*, met waar je de alert instelt), drie nieuwe openbare opdrachtfeeds (Quest4, Morgan Black, B-Hunted; robots.txt gecontroleerd, aan na de ToS-check) en TenderNed/Adzuna (connector nog te bouwen). Knop **Nu zoeken** op het dashboard en bij Bronnen haalt alle actieve bronnen direct op, met een voortgangsvenster (per bron, AI-lezen, matchen, resterende tijd) dat naar een balkje rechtsonder kan.
 - **15 extra bronnen** uit bronnenonderzoek (16-10-2026), allemaal getest: feeds (DevITjobs, LaraJobs, We Work Remotely ×2, Jobspresso), API's (TenderNed ICT, Ngage IT, Jobicy, Himalayas) via een nieuwe algemene JSON-API-connector, en overzichtspagina's (Opdracht Overheid, freelancermap, Computable, Werken voor Nederland, Michael Page, Randstad). Bulkactie **ToS-check akkoord en aanzetten** bij Bronnen. **Railway**: railway.json, startscript en docs/railway.md.
 - **Reply-tracking**: reacties op aanbiedingsmails worden elke 15 minuten in de afzendermailbox (Microsoft 365) gevonden, komen in de tijdlijn met afzender en fragment, tellen mee voor de reactietijd en geven een melding; het register stelt de statuswijziging voor.

@@ -2,20 +2,25 @@
 
 namespace App\Domain\Auth;
 
+use App\Domain\Candidates\Models\Candidate;
 use App\Domain\Offers\Mailers\SenderConnection;
 use App\Domain\Sources\Mailbox\SourceConnection;
 use App\Domain\Sources\Models\Source;
+use App\Enums\Role;
 use App\Models\User;
 use App\Settings\GeneralSettings;
 use App\Settings\MailSettings;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use RuntimeException;
+use Spatie\Permission\Models\Role as RoleModel;
 
 /**
- * Inloggen met een Microsoft 365-account (eenmalige code, geen app-registratie). Alleen voor
- * bestaande gebruikers van PHP Zoeker (op e-mailadres) en alleen uit de tenant van Fremen: die
- * wordt vastgelegd bij de eerste inlog van een beheerder. Bij een beheerder koppelt dezelfde inlog
- * ook verzenden via Microsoft 365 en de aanvragen-mailbox, als die nog niet gekoppeld zijn.
+ * Inloggen met een Microsoft 365-account (eenmalige code, geen app-registratie); de enige manier
+ * van inloggen (D56). Alleen voor de toegestane accounts (config phpzoeker.allowed_accounts), die
+ * bij hun eerste inlog als beheerder worden aangemaakt, en alleen uit de tenant van Fremen (vastgelegd
+ * bij de eerste inlog). Bij het hoofdaccount koppelt dezelfde inlog ook verzenden via Microsoft 365
+ * en de aanvragen-mailbox, als die nog niet gekoppeld zijn.
  */
 class SignInWithMicrosoft
 {
@@ -31,15 +36,10 @@ class SignInWithMicrosoft
      */
     public function handle(MicrosoftSignInConnection $connection): array
     {
-        $account = (string) $connection->account();
-        $user = $account !== '' ? User::query()->whereRaw('lower(email) = ?', [$account])->first() : null;
+        $account = strtolower((string) $connection->account());
 
-        if ($user === null) {
-            throw new RuntimeException("Er is geen gebruiker van PHP Zoeker met het adres {$account}. Vraag de beheerder om een account.");
-        }
-
-        if (! $user->hasAnyRole(['beheerder', 'accountmanager', 'reviewer', 'kandidaat'])) {
-            throw new RuntimeException('Dit account heeft nog geen rol in PHP Zoeker.');
+        if ($account === '' || ! in_array($account, (array) config('phpzoeker.allowed_accounts'), true)) {
+            throw new RuntimeException("Het account {$account} heeft geen toegang tot PHP Zoeker.");
         }
 
         $tenant = $connection->tenant();
@@ -48,16 +48,37 @@ class SignInWithMicrosoft
             throw new RuntimeException('Dit Microsoft-account hoort niet bij de organisatie van Fremen.');
         }
 
-        if (blank($this->general->microsoft_tenant_id) && $user->isBeheerder()) {
+        $user = User::query()->whereRaw('lower(email) = ?', [$account])->first()
+            ?? User::query()->create(['name' => $this->nameFor($account), 'email' => $account, 'password' => Str::password(40)]);
+
+        // Alle toegestane accounts zijn beheerder (D56).
+        if (! $user->hasRole(Role::Beheerder->value)) {
+            RoleModel::findOrCreate(Role::Beheerder->value, 'web');
+            RoleModel::findOrCreate(Role::Accountmanager->value, 'web');
+            $user->assignRole(Role::Beheerder->value, Role::Accountmanager->value);
+        }
+
+        if (blank($this->general->microsoft_tenant_id)) {
             $this->general->microsoft_tenant_id = $tenant;
             $this->general->save();
         }
 
-        $connected = $user->isBeheerder() ? $this->connectMail($connection) : [];
+        // Verzenden en de aanvragen-mailbox koppelen alleen bij het hoofdaccount, zodat de app niet
+        // per ongeluk vanuit een collega gaat versturen.
+        $connected = $account === strtolower((string) config('phpzoeker.admin.email')) ? $this->connectMail($connection) : [];
 
         activity('gebruikers')->causedBy($user)->performedOn($user)->withProperties(['account' => $account, 'gekoppeld' => $connected])->log('Ingelogd met Microsoft');
 
         return ['user' => $user, 'connected' => $connected];
+    }
+
+    /**
+     * Naam voor een nieuw account: van de kandidaat met dit adres, anders uit het adres zelf.
+     */
+    private function nameFor(string $account): string
+    {
+        return Candidate::query()->whereRaw('lower(email) = ?', [$account])->value('name')
+            ?? Str::of($account)->before('@')->replace(['.', '_'], ' ')->title()->toString();
     }
 
     /**

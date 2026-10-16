@@ -2,9 +2,10 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Auth\Login;
 use App\Filament\NavigationGroup;
 use App\Filament\Pages\Dashboard;
-use Filament\Auth\MultiFactor\App\AppAuthentication;
+use App\Http\Middleware\EnsureAllowedAccount;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -33,13 +34,8 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('app')
             ->path('')
-            ->login()
-            ->passwordReset()
+            ->login(Login::class)
             ->profile(isSimple: false)
-            ->multiFactorAuthentication(
-                [AppAuthentication::make()->recoverable()],
-                isRequired: fn (): bool => (bool) config('phpzoeker.require_mfa'),
-            )
             ->brandName('PHP Zoeker')
             ->brandLogo(fn () => view('filament.brand'))
             ->brandLogoHeight('2.5rem')
@@ -87,6 +83,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+                EnsureAllowedAccount::class,
             ]);
     }
 }

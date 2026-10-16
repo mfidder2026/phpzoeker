@@ -42,9 +42,13 @@ return [
     ],
 
     /*
-    | Inloggen alleen met 2FA (§19.1). Alleen voor lokale ontwikkeling uit te zetten.
+    | Wie mag inloggen (D56): alleen deze Microsoft-accounts, allemaal als beheerder. Inloggen gaat
+    | uitsluitend met Microsoft; tweestapsverificatie regelt Microsoft.
     */
-    'require_mfa' => (bool) env('REQUIRE_MFA', true),
+    'allowed_accounts' => array_values(array_filter(array_map(
+        fn (string $email): string => strtolower(trim($email)),
+        explode(',', (string) env('ALLOWED_ACCOUNTS', 'michel@fremen.app,mark@fremen.app,sten@fremen.app')),
+    ))),
 
     'mail_test_recipient' => env('MAIL_TEST_RECIPIENT'),
 
