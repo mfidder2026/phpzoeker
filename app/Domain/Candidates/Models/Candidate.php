@@ -5,6 +5,7 @@ namespace App\Domain\Candidates\Models;
 use App\Domain\Candidates\Enums\CandidateStatus;
 use App\Domain\Candidates\Enums\Seniority;
 use App\Domain\Candidates\Events\CandidateValuesChanged;
+use App\Domain\Matching\Models\CandidateMatch;
 use App\Models\User;
 use Database\Factories\CandidateFactory;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
@@ -101,6 +102,11 @@ class Candidate extends Model
             if ($candidate->wasChanged(self::MATCH_RELEVANT_FIELDS)) {
                 CandidateValuesChanged::dispatch($candidate, array_keys($candidate->getChanges()));
             }
+        });
+
+        // Een verwijderde kandidaat wordt niet meer gematcht; matches met een aanbieding blijven voor het register.
+        static::deleted(function (Candidate $candidate): void {
+            CandidateMatch::query()->where('candidate_id', $candidate->id)->whereDoesntHave('offers')->delete();
         });
     }
 

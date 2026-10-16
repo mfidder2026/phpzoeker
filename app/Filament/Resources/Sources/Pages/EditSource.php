@@ -6,6 +6,7 @@ use App\Domain\Sources\Models\Source;
 use App\Filament\Resources\Sources\Pages\Concerns\GuardsSourceForm;
 use App\Filament\Resources\Sources\SourceActions;
 use App\Filament\Resources\Sources\SourceResource;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 use Livewire\Attributes\On;
 
@@ -20,7 +21,11 @@ class EditSource extends EditRecord
 
     protected function getHeaderActions(): array
     {
-        return [SourceActions::microsoftLogin(), SourceActions::microsoftDisconnect(), SourceActions::testRun(), SourceActions::runNow()];
+        return [
+            SourceActions::microsoftLogin(), SourceActions::microsoftDisconnect(), SourceActions::testRun(), SourceActions::runNow(),
+            // Alleen zolang de bron nog geen publicaties heeft opgehaald (SourcePolicy); daarna: bron uitzetten.
+            DeleteAction::make(),
+        ];
     }
 
     /**

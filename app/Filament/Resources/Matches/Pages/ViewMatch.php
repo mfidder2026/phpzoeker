@@ -12,6 +12,7 @@ use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Infolists\Components\ViewEntry;
 use Filament\Resources\Pages\ViewRecord;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 
@@ -55,6 +56,12 @@ class ViewMatch extends ViewRecord
     public function infolist(Schema $schema): Schema
     {
         return $schema->components([
+            Section::make('Voor wie en waar te reageren')->compact()->collapsible()->columnSpanFull()
+                ->visible(fn (): bool => Access::isStaff())
+                ->schema([
+                    ViewEntry::make('origin')->hiddenLabel()->view('filament.assignments.origin')
+                        ->viewData(fn (CandidateMatch $record): array => ['assignment' => $record->assignment]),
+                ]),
             ViewEntry::make('detail')->hiddenLabel()->view('filament.matches.detail')->columnSpanFull(),
         ]);
     }

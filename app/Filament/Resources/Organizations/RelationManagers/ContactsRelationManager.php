@@ -2,7 +2,10 @@
 
 namespace App\Filament\Resources\Organizations\RelationManagers;
 
+use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -39,6 +42,11 @@ class ContactsRelationManager extends RelationManager
                 TextColumn::make('last_used_at')->label('Laatst gebruikt')->dateTime('d-m-Y')->placeholder('—')->sortable(),
             ])
             ->headerActions([CreateAction::make()->label('Contactpersoon toevoegen')])
-            ->recordActions([EditAction::make()]);
+            ->recordActions([
+                EditAction::make(),
+                DeleteAction::make()
+                    ->modalDescription('Aanbiedingen en opdrachtbronnen die naar deze contactpersoon verwijzen, houden hun gegevens in de snapshot maar verliezen de koppeling.'),
+            ])
+            ->toolbarActions([BulkActionGroup::make([DeleteBulkAction::make()])]);
     }
 }

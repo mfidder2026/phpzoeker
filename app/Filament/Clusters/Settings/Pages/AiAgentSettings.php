@@ -239,7 +239,36 @@ class AiAgentSettings extends Page
                     $this->profileId = null;
                     $this->form->fill(['name' => 'Fallback', 'provider' => ProviderName::Anthropic->value, 'timeout_seconds' => 120, 'max_concurrency' => 3, 'daily_budget_eur' => 10]);
                 }),
+            $this->deleteProfileAction(),
         ];
+    }
+
+    /**
+     * Een niet-actief profiel verwijderen (AiAgentProfilePolicy); AI-taken houden hun historie zonder koppeling.
+     */
+    public function deleteProfileAction(): Action
+    {
+        return Action::make('deleteProfile')
+            ->label('Profiel verwijderen')
+            ->icon(Heroicon::OutlinedTrash)
+            ->color('danger')
+            ->requiresConfirmation()
+            ->modalHeading(fn (): string => 'Profiel "'.$this->profile()?->name.'" verwijderen')
+            ->modalDescription('Het profiel en de versleutelde API-sleutel worden verwijderd. Het actieve profiel kan niet worden verwijderd.')
+            ->visible(fn (): bool => ($profile = $this->profile()) !== null && (Access::user()?->can('delete', $profile) ?? false))
+            ->action(function (): void {
+                $profile = $this->profile();
+
+                if ($profile === null || ! (Access::user()?->can('delete', $profile) ?? false)) {
+                    return;
+                }
+
+                $profile->delete();
+
+                $this->mount();
+
+                Notification::make()->title('Profiel verwijderd')->success()->send();
+            });
     }
 
     public function testConnectionAction(): Action

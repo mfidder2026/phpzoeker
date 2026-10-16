@@ -13,8 +13,17 @@ class PiiScrubber
 {
     public function scrub(string $text, ?Candidate $candidate = null): string
     {
-        // Regels die expliciet over geboorte gaan, volledig weglaten.
-        $text = (string) preg_replace('/^.*\b(geboren|geboortedatum|geb\.?\s*datum|date of birth|birth\s*date|born)\b.*$/imu', '[geboortedatum verwijderd]', $text);
+        // Regels die expliciet over geboorte gaan, volledig weglaten. Een contactregel met " | " (woonplaats | telefoon |
+        // geboren …) houdt de delen zonder geboorte-aanduiding, datum of jaartal, zodat bijvoorbeeld de woonplaats blijft staan.
+        $text = (string) preg_replace_callback('/^.*\b(geboren|geboortedatum|geb\.?\s*datum|date of birth|birth\s*date|born)\b.*$/imu', function (array $line): string {
+            if (! str_contains($line[0], ' | ')) {
+                return '[geboortedatum verwijderd]';
+            }
+
+            $kept = array_filter(explode(' | ', $line[0]), fn (string $part): bool => preg_match('/\b(geboren|geboortedatum|geb\.?\s*datum|date of birth|birth\s*date|born)\b|\d{1,2}\s*[\-\/.]\s*\d{1,2}\s*[\-\/.]\s*\d{2,4}|\b(19|20)\d{2}\b/iu', $part) !== 1);
+
+            return implode(' | ', [...$kept, '[geboortedatum verwijderd]']);
+        }, $text);
 
         if ($candidate?->birth_date !== null) {
             foreach ($this->dateVariants($candidate->birth_date) as $variant) {

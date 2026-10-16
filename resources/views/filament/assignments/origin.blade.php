@@ -10,12 +10,18 @@
     <dl class="pz-dl">
         <dt>Opdrachtgever</dt><dd>{{ $client ?? 'Onbekend' }}</dd>
         <dt>Intermediair</dt><dd>{{ $intermediary ?? 'Onbekend' }}</dd>
+        @if ($assignment->reference)
+            <dt>Referentie</dt><dd>{{ $assignment->reference }}</dd>
+        @endif
     </dl>
 
-    @foreach ($links as $link)
+    @forelse ($links as $link)
         @php
             $platform = $link->platformName();
+            $contactName = $link->contact_name ?? $link->contact?->name;
             $contactEmail = $link->contact_email ?? $link->contact?->email;
+            $contactPhone = $link->contact_phone ?? $link->contact?->phone;
+            $linkOrganization = $link->organization?->name;
         @endphp
         <div class="pz-person">
             <span class="pz-chip">{{ $link->isAlertMail() ? 'Job alert' : $link->source->type->getLabel() }}</span>
@@ -23,10 +29,16 @@
                 <div class="pz-person__name">{{ $platform }}</div>
                 <div class="pz-person__meta">
                     @if ($link->isAlertMail()) Alert-mail in de aanvragen-mailbox · @endif
+                    @if ($linkOrganization && $linkOrganization !== $platform) Organisatie: {{ $linkOrganization }} · @endif
                     binnengekomen {{ $link->first_seen_at?->format('d-m-Y H:i') }}
                 </div>
-                @if ($contactEmail)
-                    <div class="pz-person__meta">Contact: {{ $link->contact_name ?? $link->contact?->name ?? '—' }} · {{ $contactEmail }}</div>
+                <div class="pz-person__meta">
+                    Contact: {{ $contactName ?? 'onbekend' }}
+                    · {{ $contactEmail ?? 'geen e-mailadres bekend' }}
+                    @if ($contactPhone) · {{ $contactPhone }} @endif
+                </div>
+                @if ($link->url)
+                    <div class="pz-person__meta" style="word-break:break-all">{{ $link->url }}</div>
                 @endif
             </div>
             @if ($link->url)
@@ -38,9 +50,17 @@
         @if ($link->isAlertMail() && ! $contactEmail)
             <div class="pz-alert pz-alert--warning">
                 Deze opdracht kwam binnen als alert van {{ $platform }}. Zo'n alert bevat alleen een samenvatting: de opdrachtgever en de contactpersoon staan er niet in.
-                Open de opdracht bij {{ $platform }} om te zien voor wie hij is en hoe je reageert. Kan dat per mail, vul het adres dan in bij <strong>Mail bewerken → Aan</strong> en vink aan dat je het zelf hebt gecontroleerd.
+                Open de opdracht bij {{ $platform }} om te zien voor wie hij is en hoe je reageert. Kan dat per mail, vul het adres dan bij het aanbieden in bij <strong>Mail bewerken → Aan</strong> en vink aan dat je het zelf hebt gecontroleerd.
                 Gaat reageren via het platform zelf, kies dan bij <strong>Route, kanaal en CV-opties</strong> het kanaal <strong>Platformindiening</strong>.
             </div>
+        @elseif (! $contactEmail)
+            <div class="pz-alert pz-alert--warning">
+                Bij {{ $platform }} is geen e-mailadres van de contactpersoon gevonden.
+                @if ($link->url) Open de opdracht bij {{ $platform }} om het adres op te zoeken. @endif
+                Vul het bij het aanbieden in bij <strong>Mail bewerken → Aan</strong>, of kies het kanaal <strong>Platformindiening</strong>.
+            </div>
         @endif
-    @endforeach
+    @empty
+        <div class="pz-alert pz-alert--warning">Er is geen bron gekoppeld aan deze opdracht, dus er is geen contactpersoon bekend.</div>
+    @endforelse
 </div>

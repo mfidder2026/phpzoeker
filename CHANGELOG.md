@@ -3,6 +3,9 @@
 ## [Fase 5 — rapportage en verbeteren] — 15-10-2026
 
 ### Toegevoegd
+- **Ollama-gegevens naar het bestaande AI-profiel** bij de deploy (eenmalige migratie uit `AI_BOOTSTRAP_*`, D58).
+- **Kandidaat aanmaken vanuit CV** (16-10-2026): knop *Aanmaken vanuit CV* bij Kandidaten; de AI leest naam, functietitel, senioriteit, woonplaats, rijbewijs, talen, uren, zoekprofiel en het master-profiel (concept), de app zelf telefoon, e-mail, geboortedatum en pasfoto. Woonplaats blijft bewaard als die op dezelfde regel als de geboortedatum staat.
+- **Verwijderknoppen** (16-10-2026): kandidaten verwijderen en terugzetten (beheerder; ook als bulkactie, filter "Verwijderd"; matches zonder aanbieding vervallen, aanbiedingen blijven in het register), bronnen zonder opgehaalde publicaties, contactpersonen van een relatie, en niet-actieve AI-profielen.
 - **Inloggen met Microsoft** op de inlogpagina; bij een beheerder koppelt dezelfde inlog ook verzenden via Microsoft 365 en de aanvragen-mailbox.
 - **Alleen inloggen met Microsoft**, alleen voor michel@, mark@ en sten@fremen.app (allemaal beheerder); wachtwoordlogin, wachtwoordreset en eigen 2FA zijn uit.
 - **Bronnencatalogus (§8.2) in de app**: alle 33 alert-bronnen (type *Job alert → aanvragen-mailbox*, met waar je de alert instelt), drie nieuwe openbare opdrachtfeeds (Quest4, Morgan Black, B-Hunted; robots.txt gecontroleerd, aan na de ToS-check) en TenderNed/Adzuna (connector nog te bouwen). Knop **Nu zoeken** op het dashboard en bij Bronnen haalt alle actieve bronnen direct op, met een voortgangsvenster (per bron, AI-lezen, matchen, resterende tijd) dat naar een balkje rechtsonder kan.
@@ -19,6 +22,13 @@
 
 ### Gewijzigd
 - Werkdagen tussen twee momenten worden in Europe/Amsterdam geteld (een tijdstip in UTC telde soms een dag te veel).
+
+### Opgelost
+- Master-profiel goedkeuren was moeilijk te vinden (knop rechts buiten beeld in de tabel): nu ook bovenaan de kandidaatpagina (**Master-profiel goedkeuren**); Word, PDF en Nieuwe versie staan in het ⋯-menu (16-10-2026).
+- **Opslaan van een kandidaat wiste telefoon en geboortedatum** (die staan verborgen in het model en kwamen niet in het formulier); ze worden nu ingevuld en bewaard (16-10-2026).
+- Melding "Weet je zeker dat je deze pagina wilt verlaten?" na *Aanmaken vanuit CV*: het formulier werd opnieuw gevuld zonder het als opgeslagen te markeren (16-10-2026). De pasfoto krijgt nu de naam van de kandidaat in plaats van de tijdelijke naam.
+- Instellingen opslaan met een lege handtekening (of ander leeg tekstveld) gaf een fout 500 (16-10-2026).
+
 ## [Fase 4 — aanbieden, CV, mail en aanbiedingsregister] — 15-10-2026
 
 ### Toegevoegd

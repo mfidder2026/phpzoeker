@@ -16,30 +16,6 @@ use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\PhpWord;
 
-/**
- * Maakt een klein geanonimiseerd Word-CV met PII die niet naar het model mag.
- */
-function makeCvDocx(string $path): void
-{
-    $word = new PhpWord;
-    $section = $word->addSection();
-    $section->addText('ALEX VOORBEELD');
-    $section->addText('Senior PHP / Laravel Developer');
-    $section->addText('Geboortedatum: 14-03-1985');
-    $section->addText('Rotterdam | 06-11122233 | alex@example.com');
-    $section->addListItem('Ontwikkeling van het certificatenportaal in Laravel.');
-    $table = $section->addTable();
-    $table->addRow();
-    $table->addCell(2000)->addText('2021 – heden');
-    $table->addCell(6000)->addText('Senior Developer bij Voorbeeldbank');
-
-    if (! is_dir(dirname($path))) {
-        mkdir(dirname($path), 0775, true);
-    }
-
-    IOFactory::createWriter($word, 'Word2007')->save($path);
-}
-
 it('extracts paragraphs, bullets and table cells from a docx', function () {
     $path = sys_get_temp_dir().'/pz-cv-'.uniqid().'.docx';
     makeCvDocx($path);

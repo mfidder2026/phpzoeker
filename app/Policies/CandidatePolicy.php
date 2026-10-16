@@ -41,4 +41,14 @@ class CandidatePolicy
     {
         return $user->isBeheerder();
     }
+
+    public function restore(User $user, Candidate $candidate): bool
+    {
+        return $user->isBeheerder();
+    }
+
+    public function restoreAny(User $user): bool
+    {
+        return $user->isBeheerder();
+    }
 }
