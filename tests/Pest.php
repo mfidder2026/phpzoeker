@@ -10,6 +10,8 @@ use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use PhpOffice\PhpWord\IOFactory;
+use PhpOffice\PhpWord\PhpWord;
 use Tests\TestCase;
 
 pest()->extend(TestCase::class)
@@ -240,3 +242,27 @@ function fakePdfConverter(): void
 }
 
 require_once __DIR__.'/Support/offers.php';
+
+/**
+ * Maakt een klein geanonimiseerd Word-CV met PII die niet naar het model mag.
+ */
+function makeCvDocx(string $path): void
+{
+    $word = new PhpWord;
+    $section = $word->addSection();
+    $section->addText('ALEX VOORBEELD');
+    $section->addText('Senior PHP / Laravel Developer');
+    $section->addText('Geboortedatum: 14-03-1985');
+    $section->addText('Rotterdam | 06-11122233 | alex@example.com');
+    $section->addListItem('Ontwikkeling van het certificatenportaal in Laravel.');
+    $table = $section->addTable();
+    $table->addRow();
+    $table->addCell(2000)->addText('2021 – heden');
+    $table->addCell(6000)->addText('Senior Developer bij Voorbeeldbank');
+
+    if (! is_dir(dirname($path))) {
+        mkdir(dirname($path), 0775, true);
+    }
+
+    IOFactory::createWriter($word, 'Word2007')->save($path);
+}
