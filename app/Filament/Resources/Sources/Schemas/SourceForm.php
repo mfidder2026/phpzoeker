@@ -92,6 +92,22 @@ class SourceForm
                     TagsInput::make('config.internal_domains')->label('Eigen domeinen')->default(['fremen.app'])->columnSpanFull()
                         ->helperText('Mails van deze domeinen zijn doorgestuurde aanvragen van collega\'s (§8.6); andere mails zijn alerts van platforms en intermediairs.'),
                 ]),
+            Section::make('API (JSON)')->visible(fn (Get $get): bool => in_array(self::type($get), [SourceType::Api, SourceType::TenderNed], true))
+                ->description('Openbare JSON-API. Geef aan waar de lijst met publicaties staat en welke velden de titel, link, tekst en datum zijn (punt-paden, bijv. link.href).')
+                ->columns(3)
+                ->schema([
+                    TextInput::make('config.api_url')->label('API-URL')->url()->columnSpanFull()
+                        ->required(fn (Get $get): bool => (bool) $get('enabled')),
+                    TextInput::make('config.items_path')->label('Pad naar de lijst')->placeholder('Leeg = hele respons, bijv. content of jobs'),
+                    TextInput::make('config.fields.id')->label('Veld: ID')->placeholder('id'),
+                    TextInput::make('config.fields.title')->label('Veld: titel')->placeholder('title'),
+                    TextInput::make('config.fields.url')->label('Veld: link')->placeholder('url'),
+                    TextInput::make('config.url_template')->label('Link-sjabloon')->placeholder('https://…/{id}')
+                        ->helperText('Alleen als de API geen link geeft.'),
+                    TextInput::make('config.fields.date')->label('Veld: datum')->placeholder('date'),
+                    TagsInput::make('config.fields.body')->label('Velden voor de tekst')->placeholder('description of Opdrachtgever=opdrachtgeverNaam')->columnSpan(2),
+                    TextInput::make('config.max_items')->label('Maximaal aantal per run')->numeric()->minValue(1)->maxValue(200)->default(50),
+                ]),
             Section::make('Job alert')->visible($isType(SourceType::Alert))
                 ->description('De app haalt deze bron niet zelf op. Maak bij het platform een job alert (of e-mailnotificatie) aan naar aanvragen@fremen.app; de aanvragen-mailbox verwerkt die mails. Zet de bron daarna aan als geheugensteun dat de alert loopt.')
                 ->columns(2)
@@ -111,7 +127,6 @@ class SourceForm
                         ->disabled(fn (Get $get): bool => self::type($get) !== SourceType::Alert && (blank($get('tos_reviewed_at')) || blank($get('tos_notes'))))
                         ->helperText(fn (Get $get): string => match (true) {
                             self::type($get) === SourceType::Alert => 'Een alert ontvangt alleen de gewone e-mailmeldingen van het platform; daar is geen ToS-check voor nodig.',
-                            in_array(self::type($get), [SourceType::Api, SourceType::TenderNed], true) => 'Voor dit brontype is nog geen connector gebouwd; de app haalt de bron nog niet op.',
                             blank($get('tos_reviewed_at')) || blank($get('tos_notes')) => 'Vul eerst de ToS-check in (datum én samenvatting).',
                             default => 'De scheduler haalt de bron op volgens het interval.',
                         }),

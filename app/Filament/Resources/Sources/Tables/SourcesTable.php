@@ -5,12 +5,16 @@ namespace App\Filament\Resources\Sources\Tables;
 use App\Domain\Sources\Enums\SourceType;
 use App\Domain\Sources\Models\Source;
 use App\Filament\Resources\Sources\SourceActions;
+use Filament\Actions\BulkAction;
 use Filament\Actions\EditAction;
+use Filament\Notifications\Notification;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Collection;
 
 class SourcesTable
 {
@@ -47,6 +51,30 @@ class SourcesTable
                         default => 'danger',
                     })
                     ->tooltip(fn (Source $record): ?string => $record->health_warning),
+            ])
+            ->toolbarActions([
+                BulkAction::make('approveAndEnable')
+                    ->label('ToS-check akkoord en aanzetten')
+                    ->icon(Heroicon::OutlinedCheckCircle)
+                    ->requiresConfirmation()
+                    ->modalDescription('Je bevestigt dat je de ToS-samenvatting van de geselecteerde bronnen hebt gelezen en akkoord bent. De datum van vandaag wordt vastgelegd en de bronnen gaan aan. Job alerts worden als "ingesteld" gemarkeerd.')
+                    ->deselectRecordsAfterCompletion()
+                    ->action(function (Collection $records): void {
+                        $enabled = 0;
+
+                        foreach ($records as $source) {
+                            if (! $source instanceof Source || ($source->type !== SourceType::Alert && blank($source->tos_notes))) {
+                                continue;
+                            }
+
+                            $source->forceFill(['tos_reviewed_at' => $source->tos_reviewed_at ?? now(), 'enabled' => true])->save();
+                            $enabled++;
+                        }
+
+                        Notification::make()->success()->title($enabled.' '.($enabled === 1 ? 'bron' : 'bronnen').' aangezet')
+                            ->body($enabled < $records->count() ? 'Bronnen zonder ToS-samenvatting zijn overgeslagen.' : null)
+                            ->send();
+                    }),
             ])
             ->recordActions([
                 SourceActions::testRun(),

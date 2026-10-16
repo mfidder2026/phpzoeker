@@ -28,12 +28,11 @@ enum SourceType: string implements HasLabel
     }
 
     /**
-     * Haalt de app deze bron zelf op? Job alerts komen binnen via de aanvragen-mailbox;
-     * voor API en TenderNed is nog geen connector gebouwd.
+     * Haalt de app deze bron zelf op? Job alerts komen binnen via de aanvragen-mailbox.
      */
     public function canFetch(): bool
     {
-        return in_array($this, [self::Feed, self::MailboxAlert, self::Html, self::Manual], true);
+        return $this !== self::Alert;
     }
 
     /**
@@ -43,6 +42,6 @@ enum SourceType: string implements HasLabel
      */
     public static function searchable(): array
     {
-        return [self::Feed->value, self::MailboxAlert->value, self::Html->value];
+        return [self::Feed->value, self::MailboxAlert->value, self::Html->value, self::Api->value, self::TenderNed->value];
     }
 }

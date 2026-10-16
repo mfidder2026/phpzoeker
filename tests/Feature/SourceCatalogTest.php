@@ -1,6 +1,8 @@
 <?php
 
 use App\Domain\Sources\Actions\SourceSearch;
+use App\Domain\Sources\Connectors\FeedConnector;
+use App\Domain\Sources\Connectors\JsonApiConnector;
 use App\Domain\Sources\Enums\RawPostingStatus;
 use App\Domain\Sources\Enums\SourceRunStatus;
 use App\Domain\Sources\Enums\SourceType;
@@ -24,7 +26,7 @@ it('seeds the full source catalogue with every external source switched off', fu
 
     expect(Source::query()->where('key', 'linkedin-jobs')->value('type'))->toBe(SourceType::Alert)
         ->and(Source::query()->where('type', SourceType::Alert->value)->count())->toBe(33)
-        ->and(Source::query()->where('type', SourceType::Feed->value)->count())->toBe(4)
+        ->and(Source::query()->where('type', SourceType::Feed->value)->count())->toBe(9)
         ->and(Source::query()->where('key', 'tenderned-ict')->exists())->toBeTrue()
         ->and(Source::query()->where('enabled', true)->pluck('key')->all())->toBe(['handmatig']);
 });
@@ -156,4 +158,52 @@ it('only fetches sources on a schedule when automatic fetching is switched on', 
 
     config(['phpzoeker.sources_auto_fetch' => true]);
     expect($event->filtersPass(app()))->toBeTrue();
+});
+
+it('reads publications from a JSON API with configured field paths', function () {
+    $postings = app(JsonApiConnector::class)->parse([
+        'content' => [[
+            'publicatieId' => '444914', 'publicatieDatum' => '2026-10-16', 'aanbestedingNaam' => 'Integrale ICT-dienstverlening',
+            'opdrachtgeverNaam' => 'Stichting TWijs', 'sluitingsDatum' => '2026-11-30T12:00:00',
+            'link' => ['href' => 'https://www.tenderned.nl/aankondigingen/overzicht/444914'],
+        ]],
+    ], [
+        'items_path' => 'content',
+        'fields' => ['id' => 'publicatieId', 'title' => 'aanbestedingNaam', 'url' => 'link.href', 'date' => 'publicatieDatum', 'body' => ['Opdrachtgever=opdrachtgeverNaam', 'Sluitingsdatum=sluitingsDatum']],
+    ]);
+
+    expect($postings)->toHaveCount(1)
+        ->and($postings[0]->externalId)->toBe('444914')
+        ->and($postings[0]->title)->toBe('Integrale ICT-dienstverlening')
+        ->and($postings[0]->url)->toBe('https://www.tenderned.nl/aankondigingen/overzicht/444914')
+        ->and($postings[0]->bodyText)->toContain('Opdrachtgever: Stichting TWijs')
+        ->and($postings[0]->publishedAt->format('Y-m-d'))->toBe('2026-10-16');
+});
+
+it('reads a job XML feed in Indeed format', function () {
+    $postings = app(FeedConnector::class)->parse(<<<'XML'
+        <?xml version="1.0" encoding="UTF-8"?>
+        <jobs><job id="abc-1"><id><![CDATA[abc-1]]></id><title><![CDATA[Senior PHP Developer]]></title>
+        <url><![CDATA[https://devitjobs.nl/jobs/Voorbeeld-PHP]]></url><city><![CDATA[Utrecht]]></city><company><![CDATA[Voorbeeld BV]]></company>
+        <pubdate><![CDATA[15.10.2026]]></pubdate><description><![CDATA[<p>Laravel en Vue</p>]]></description></job></jobs>
+        XML);
+
+    expect($postings)->toHaveCount(1)
+        ->and($postings[0]->externalId)->toBe('abc-1')
+        ->and($postings[0]->url)->toBe('https://devitjobs.nl/jobs/Voorbeeld-PHP')
+        ->and($postings[0]->bodyText)->toContain('Voorbeeld BV')->toContain('Laravel en Vue')
+        ->and($postings[0]->publishedAt->format('Y-m-d'))->toBe('2026-10-15');
+});
+
+it('approves the ToS check and switches on selected sources in one go', function () {
+    (new SourceSeeder)->run();
+    $this->actingAs(userWithRoles(Role::Beheerder));
+    $sources = Source::query()->whereIn('key', ['larajobs', 'opdrachtoverheid', 'freelance-nl'])->get();
+
+    Livewire::test(ListSources::class)
+        ->callTableBulkAction('approveAndEnable', $sources)
+        ->assertNotified('3 bronnen aangezet');
+
+    expect(Source::query()->whereIn('key', ['larajobs', 'opdrachtoverheid', 'freelance-nl'])->where('enabled', true)->count())->toBe(3)
+        ->and(Source::query()->where('key', 'larajobs')->value('tos_reviewed_at'))->not->toBeNull();
 });
