@@ -11,6 +11,7 @@ php artisan migrate --force
 php artisan db:seed --force --class=RoleSeeder
 php artisan db:seed --force --class=SourceSeeder
 php artisan db:seed --force --class=AdminUserSeeder
+php artisan db:seed --force --class=AiAgentProfileSeeder
 php artisan storage:link || true
 php artisan optimize
 
