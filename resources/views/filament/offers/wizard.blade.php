@@ -38,6 +38,8 @@
                 <dt>Tarief</dt><dd>€ {{ number_format((float) $offer->offered_rate, 2, ',', '.') }} per uur, excl. btw (max. opdracht: {{ $offer->assignment->max_rate !== null ? '€ '.number_format((float) $offer->assignment->max_rate, 2, ',', '.') : 'onbekend' }})</dd>
                 <dt>Akkoord kandidaat</dt><dd>{{ $offer->consent_status === \App\Domain\Offers\Enums\ConsentStatus::Gevraagd ? 'Wordt gevraagd na het goedkeuren van de mail' : $offer->consent_status->getLabel() }}</dd>
             </dl>
+            <h5 class="pz-match__subtitle">Voor wie en waar te reageren</h5>
+            @include('filament.assignments.origin', ['assignment' => $offer->assignment])
             @foreach ($warnings as $warning)
                 <div class="pz-alert pz-alert--warning">⚠ {{ $warning }}</div>
             @endforeach

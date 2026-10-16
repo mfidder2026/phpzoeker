@@ -4,8 +4,9 @@ Opdrachtenradar en aanbiedingsassistent voor Fremen-developers. Eén Filament-we
 (Laravel 13, Filament 5). Het ontwerp staat lokaal in `docs/ontwerp/` (niet in git: bevat persoonsgegevens); beslissingen in
 [`docs/DECISIONS.md`](docs/DECISIONS.md); wat er per fase is opgeleverd in [`CHANGELOG.md`](CHANGELOG.md).
 
-**Stand:** fase 0–4 zijn gebouwd: fundering, webapp met AI-agent en master-CV's, ingest van opdrachten, matching met
-meldingen, en aanbieden met CV, mail en aanbiedingsregister. Rapportages (fase 5) staan als "Volgt in fase 5" in het menu.
+**Stand:** fase 0–5 zijn gebouwd: fundering, webapp met AI-agent en master-CV's, ingest van opdrachten, matching met
+meldingen, aanbieden met CV, mail en aanbiedingsregister, en rapportages, reply-tracking en onderhoud. Fase 5 is
+doorlopend: extra bronnen en bijsturen op basis van feedback.
 
 ## Lokaal starten (zonder Docker)
 
@@ -60,7 +61,7 @@ master-profiel hebben: voorselectie en harde filters zonder AI, daarna een AI-be
 score met opbouw (instellingen in **Instellingen → Matching**). Resultaten staan in **Werk → Matches**, op het
 tabblad *Matches* van een opdracht en in de **Shortlist**-kanban. Sterke matches geven direct een melding; de
 digest gaat op werkdagen om 08:00 (instelbaar in **Instellingen → Meldingen**). De worker moet daarvoor draaien
-(`queue:work --queue=ai,ingest,documents,mail,default`), net als de scheduler.
+(`queue:work --queue=ingest,ai,documents,mail,default`), net als de scheduler.
 
 Kwaliteit van de matching meten (kost tokens; de door Fremen gelabelde set hoort in `storage/app/private/eval/matching`):
 
@@ -74,6 +75,15 @@ Vanuit een match: **Aanbieden** opent de wizard (controle → CV → mail → ve
 verstuurd na goedkeuring door een mens; de grounding-check moet groen zijn. Na verzending staat de aanbieding in het
 **Aanbiedingsregister** met een vaste snapshot. Aanbiedingen buiten de app leg je vast met **Handmatig registreren**
 (.eml uploaden). De PDF van het CV maakt de app via Microsoft Word (Windows) of Gotenberg (`PDF_CONVERTER`).
+
+## Planning (scheduler)
+
+`php artisan schedule:work` draait: bronnen ophalen (elke minuut wie aan de beurt is), reacties zoeken (15 min),
+opdrachten sluiten, deadline-herinneringen en verlopen reacties (elk uur), herberekenen (02:00), reactietijden
+(02:30), bewaartermijnen (03:00), AI-verbindingstest (06:45), bronnencheck (07:00) en de digest (werkdagen 08:00).
+
+Eerdere aanbiedingen importeren: `php artisan offers:import pad/naar/bestand.csv --user=michel@fremen.app`
+(kolommen: `docs/voorbeeld-aanbiedingen.csv`).
 
 ## Kwaliteit
 

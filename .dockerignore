@@ -8,3 +8,11 @@ storage/framework/sessions/*
 storage/framework/views/*
 database/database.sqlite
 config/seed/candidates.yaml
+.github
+tests
+docs/ontwerp
+storage/app/private/*
+storage/framework/phpstan
+config/seed/candidates.yaml
+public/storage
+public/hot

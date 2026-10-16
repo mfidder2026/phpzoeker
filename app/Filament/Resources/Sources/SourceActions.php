@@ -2,19 +2,22 @@
 
 namespace App\Filament\Resources\Sources;
 
+use App\Domain\Sources\Actions\SourceSearch;
 use App\Domain\Sources\ConnectorRegistry;
 use App\Domain\Sources\Data\ConnectorTestResult;
 use App\Domain\Sources\Enums\SourceType;
 use App\Domain\Sources\Jobs\FetchSourceJob;
 use App\Domain\Sources\Mailbox\MicrosoftLogin;
 use App\Domain\Sources\Models\Source;
+use App\Filament\Support\Access;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
+use Livewire\Component;
 use Throwable;
 
 /**
- * Acties op een bron: "Test run" (droog, FR-B7) en "Nu ophalen".
+ * Acties op een bron: "Test run" (droog, FR-B7), "Nu ophalen" en "Nu zoeken" (alle bronnen).
  */
 final class SourceActions
 {
@@ -24,6 +27,7 @@ final class SourceActions
             ->label('Test run')
             ->icon(Heroicon::OutlinedBeaker)
             ->color('gray')
+            ->visible(fn (Source $record): bool => $record->type->canFetch())
             ->modalHeading(fn (Source $record): string => 'Test run — '.$record->name)
             ->modalDescription('Droog draaien: de bron wordt opgehaald maar er wordt niets opgeslagen.')
             ->modalSubmitAction(false)
@@ -82,13 +86,39 @@ final class SourceActions
             ->label('Nu ophalen')
             ->icon(Heroicon::OutlinedArrowPath)
             ->color('gray')
-            ->visible(fn (Source $record): bool => $record->enabled)
+            ->visible(fn (Source $record): bool => $record->enabled && $record->type->canFetch())
             ->action(function (Source $record): void {
                 FetchSourceJob::dispatch($record->id);
 
                 Notification::make()->success()->title('Ophalen gestart')
                     ->body('Nieuwe publicaties verschijnen bij Opdrachten; AI-extractie is zichtbaar in de AI-meter.')
                     ->send();
+            });
+    }
+
+    /**
+     * Haalt alle actieve bronnen nu op (feeds, overzichtspagina's en de aanvragen-mailbox),
+     * los van hun interval.
+     */
+    public static function searchAll(): Action
+    {
+        return Action::make('searchAll')
+            ->label('Nu zoeken')
+            ->icon(Heroicon::OutlinedMagnifyingGlass)
+            ->visible(fn (): bool => Access::isStaff())
+            ->action(function (Component $livewire): void {
+                $user = Access::user();
+                $search = $user !== null ? app(SourceSearch::class)->start($user) : null;
+
+                if ($search === null) {
+                    Notification::make()->warning()->title('Geen actieve bronnen')
+                        ->body('Zet eerst een bron aan bij Bronnen (na de ToS-check).')
+                        ->send();
+
+                    return;
+                }
+
+                $livewire->dispatch('source-search-started');
             });
     }
 }

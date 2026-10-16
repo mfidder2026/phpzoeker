@@ -37,9 +37,16 @@ De app leest het gedeelde postvak **aanvragen@fremen.app** (Microsoft 365). Stap
 
 ## Aanbieden (fase 4)
 - [ ] **OverheidZZP**: samenvatting van robots.txt en voorwaarden staat in `docs/bronnen.md`. Besluit nemen en in **Bronnen → OverheidZZP** de ToS-check invullen en de bron aanzetten.
-- [ ] **Verzenden via Microsoft 365**: Instellingen → Mail → mailprovider *Microsoft 365*, afzendermailbox invullen, **Inloggen bij Microsoft** en **Testmail sturen** (zie `docs/m365-aanvragen-mailbox.md`).
+- [ ] **Inloggen met Microsoft** op de inlogpagina (als beheerder): koppelt verzenden en de aanvragen-mailbox in één keer. Daarna **Testmail sturen** in Instellingen → Mail en de afzendermailbox controleren.
 - [ ] **Instellingen → Mail**: afzendermailbox, naam en handtekening (HTML en tekst) invullen; standaard-CC controleren (nu mark@fremen.app en michel@fremen.app).
 - [ ] **Instellingen → CV**: Fremen-contact (naam, e-mail, telefoon) voor de contactregel in het CV.
 - [ ] **Relaties**: website en standaard reactietermijn per vaste intermediair (bijv. HeadFirst) invullen.
 - [ ] Akkoord geven op een bibliotheek voor Outlook-**.msg** (nu alleen .eml).
 - [ ] De eerste aanbieding samen doorlopen: CV-review, grounding-rapport en mail controleren vóór verzending.
+
+## Rapportage en verbeteren (fase 5)
+- [ ] **Eerdere aanbiedingen** in het register zetten: spreadsheet in het formaat van `docs/voorbeeld-aanbiedingen.csv`, dan **Aanbiedingsregister → Importeren**.
+- [ ] **Teams** (optioneel): in Teams een Workflows-webhook voor het kanaal maken en de URL invullen in **Instellingen → Meldingen**.
+- [ ] **Fallbackprofiel** (optioneel): in **Instellingen → AI-agent → Nieuw profiel** een tweede provider instellen, verwerkersovereenkomst bevestigen en "Fallbackprofiel" aanzetten.
+- [ ] **Bewaartermijnen** nalopen in **Instellingen → Privacy** (de opschoning draait elke nacht).
+- [ ] Na een paar weken: **Rapportages → Gemiste kansen** en het **gewichtsvoorstel** in Instellingen → Matching bekijken.

@@ -49,9 +49,9 @@ final class TrackedRun
         return $this;
     }
 
-    public function recordUsage(AiResponse $response): self
+    public function recordUsage(AiResponse $response, ?AiAgentProfile $pricing = null): self
     {
-        $cost = $this->profile?->estimateCost($response->model, $response->inputTokens, $response->outputTokens) ?? 0.0;
+        $cost = ($pricing ?? $this->profile)?->estimateCost($response->model, $response->inputTokens, $response->outputTokens) ?? 0.0;
 
         $this->run->forceFill([
             'model' => $this->run->model ?? $response->model,

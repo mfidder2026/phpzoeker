@@ -113,6 +113,10 @@ class OfferWorkflow
 
         $offer = $email->offer ?? throw new InvalidArgumentException('Deze mail hoort niet bij een aanbieding.');
 
+        if (array_filter($email->to ?? []) === []) {
+            throw new InvalidArgumentException('Vul eerst een ontvanger in bij "Aan" (Mail bewerken). Zonder ontvanger gaat de aanbieding nergens heen.');
+        }
+
         DB::transaction(function () use ($email, $user, $offer): void {
             $email->forceFill(['status' => OutboundEmailStatus::Goedgekeurd, 'approved_by' => $user->id, 'approved_at' => now()])->save();
 
@@ -218,7 +222,8 @@ class OfferWorkflow
      */
     public function recordResponse(Offer $offer, User $user, ?string $note = null): void
     {
-        $offer->forceFill([
+        // Een reactie die reply-tracking al vond, houdt haar eigen tijdstip.
+        $offer->forceFill($offer->response_received_at !== null ? [] : [
             'response_received_at' => now(),
             'response_time_workdays' => $offer->sent_at !== null ? Workdays::between(CarbonImmutable::parse($offer->sent_at), CarbonImmutable::now()) : null,
         ])->save();

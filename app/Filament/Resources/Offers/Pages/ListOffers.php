@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Offers\Pages;
 
+use App\Domain\Offers\Actions\ImportOffers;
 use App\Domain\Offers\Enums\OfferStatus;
 use App\Domain\Offers\Models\Offer;
 use App\Domain\Offers\Support\ResponseTerm;
@@ -10,10 +11,14 @@ use App\Filament\Resources\Offers\OfferResource;
 use App\Filament\Resources\Offers\Widgets\OfferStats;
 use App\Filament\Support\Access;
 use Filament\Actions\Action;
+use Filament\Forms\Components\FileUpload;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Storage;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ListOffers extends ListRecords
@@ -59,6 +64,30 @@ class ListOffers extends ListRecords
                 ->icon(Heroicon::OutlinedArrowDownTray)
                 ->color('gray')
                 ->action(fn (): StreamedResponse => $this->export()),
+            Action::make('import')
+                ->label('Importeren')
+                ->icon(Heroicon::OutlinedArrowUpTray)
+                ->color('gray')
+                ->visible(fn (): bool => Access::isStaff())
+                ->modalDescription('Eerdere aanbiedingen uit een spreadsheet (CSV, puntkomma of komma). Kolommen: '.implode(';', array_keys(ImportOffers::COLUMNS)).'. Voorbeeld: docs/voorbeeld-aanbiedingen.csv. Dubbele aanbiedingen worden overgeslagen.')
+                ->schema([
+                    FileUpload::make('file')->label('CSV-bestand')->disk('local')->directory('offers/uploads')->visibility('private')
+                        ->acceptedFileTypes(['text/csv', 'text/plain', 'application/vnd.ms-excel'])->maxSize(5120)->required(),
+                ])
+                ->action(function (array $data): void {
+                    try {
+                        $result = app(ImportOffers::class)->handle(Storage::disk('local')->path((string) $data['file']), Access::user() ?? abort(403));
+                    } catch (RuntimeException $exception) {
+                        Notification::make()->danger()->title($exception->getMessage())->send();
+
+                        return;
+                    }
+
+                    Notification::make()->success()->title($result['imported'].' aanbiedingen geïmporteerd')
+                        ->body($result['skipped'] === [] ? null : implode('
+', array_slice($result['skipped'], 0, 10)))
+                        ->persistent()->send();
+                }),
             Action::make('manual')
                 ->label('Handmatig registreren')
                 ->icon(Heroicon::OutlinedPlus)

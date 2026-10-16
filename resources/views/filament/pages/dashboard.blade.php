@@ -5,9 +5,12 @@
 
 <x-filament-panels::page>
     <div class="pz-dash">
-        <div class="pz-hello">
-            <h2>{{ $greeting }}, {{ $firstName }}</h2>
-            <p>{{ ucfirst($today) }} · {{ $newSinceYesterday }} {{ $newSinceYesterday === 1 ? 'nieuwe opdracht' : 'nieuwe opdrachten' }} sinds gisteren</p>
+        <div class="pz-hello pz-hello--actions">
+            <div>
+                <h2>{{ $greeting }}, {{ $firstName }}</h2>
+                <p>{{ ucfirst($today) }} · {{ $newSinceYesterday }} {{ $newSinceYesterday === 1 ? 'nieuwe opdracht' : 'nieuwe opdrachten' }} sinds gisteren</p>
+            </div>
+            <div>{{ $this->searchAllAction }}</div>
         </div>
 
         <div class="pz-tiles">
@@ -163,6 +166,21 @@
                         </div>
                     </div>
                 @endforeach
+                @if ($alertsTotal > 0)
+                    <div class="pz-person">
+                        <div>
+                            <div class="pz-person__name">Job alerts van platforms</div>
+                            <div class="pz-person__meta">Komen binnen via de aanvragen-mailbox</div>
+                        </div>
+                        <div class="pz-person__aside">
+                            @if ($sourcesUrl)
+                                <a href="{{ $sourcesUrl }}" @class(['pz-chip', 'pz-chip--success' => $alertsSetUp === $alertsTotal, 'pz-chip--warning' => $alertsSetUp < $alertsTotal])>{{ $alertsSetUp }} van {{ $alertsTotal }} ingesteld</a>
+                            @else
+                                <span @class(['pz-chip', 'pz-chip--success' => $alertsSetUp === $alertsTotal, 'pz-chip--warning' => $alertsSetUp < $alertsTotal])>{{ $alertsSetUp }} van {{ $alertsTotal }} ingesteld</span>
+                            @endif
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
 

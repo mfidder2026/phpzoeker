@@ -3,6 +3,7 @@
 namespace App\Domain\Sources\Mailbox;
 
 use App\Ai\Support\SecretRedactor;
+use App\Domain\Offers\Mailers\SenderConnection;
 use App\Domain\Sources\Models\Source;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Cache;
@@ -245,6 +246,11 @@ class MicrosoftLogin
 
         $account = (string) ($claims['preferred_username'] ?? $claims['upn'] ?? $claims['unique_name'] ?? '');
         $connection->store((string) ($tokens['refresh_token'] ?? ''), (string) ($claims['tid'] ?? 'organizations'), $account);
+
+        // Inloggen bij de app zelf wordt apart gelogd (SignInWithMicrosoft).
+        if (! $connection instanceof SourceConnection && ! $connection instanceof SenderConnection) {
+            return;
+        }
 
         $log = activity($connection instanceof SourceConnection ? 'bronnen' : 'instellingen')->causedBy(auth()->user())->withProperties(['account' => $account ?: null]);
 

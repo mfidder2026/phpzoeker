@@ -42,9 +42,13 @@ return [
     ],
 
     /*
-    | Inloggen alleen met 2FA (§19.1). Alleen voor lokale ontwikkeling uit te zetten.
+    | Wie mag inloggen (D56): alleen deze Microsoft-accounts, allemaal als beheerder. Inloggen gaat
+    | uitsluitend met Microsoft; tweestapsverificatie regelt Microsoft.
     */
-    'require_mfa' => (bool) env('REQUIRE_MFA', true),
+    'allowed_accounts' => array_values(array_filter(array_map(
+        fn (string $email): string => strtolower(trim($email)),
+        explode(',', (string) env('ALLOWED_ACCOUNTS', 'michel@fremen.app,mark@fremen.app,sten@fremen.app')),
+    ))),
 
     'mail_test_recipient' => env('MAIL_TEST_RECIPIENT'),
 
@@ -52,6 +56,12 @@ return [
 
     // PDF van het CV: gotenberg (Docker/productie), word (Windows met Microsoft Word) of auto.
     'pdf_converter' => env('PDF_CONVERTER', 'auto'),
+
+    /*
+     * Bronnen automatisch ophalen volgens hun interval (planner). Standaard uit: zoeken gebeurt
+     * met de knop "Nu zoeken".
+     */
+    'sources_auto_fetch' => (bool) env('SOURCES_AUTO_FETCH', false),
 
     'pdok_url' => env('PDOK_LOCATIESERVER_URL', 'https://api.pdok.nl/bzk/locatieserver/search/v3_1'),
 

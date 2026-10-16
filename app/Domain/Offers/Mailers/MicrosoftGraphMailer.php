@@ -72,6 +72,30 @@ class MicrosoftGraphMailer implements OutboundMailer
     }
 
     /**
+     * Berichten in een conversatie in de afzendermailbox (voor reply-tracking, §13.5).
+     *
+     * @return list<array{id: string, internet_message_id: string, from: string, subject: string, received_at: string, preview: string}>
+     */
+    public function conversationMessages(string $mailbox, string $conversationId): array
+    {
+        $filter = "conversationId eq '".str_replace("'", "''", $conversationId)."'";
+        $response = $this->request('get', '/users/'.rawurlencode($mailbox).'/messages', [
+            '$filter' => $filter,
+            '$select' => 'id,internetMessageId,from,subject,receivedDateTime,bodyPreview',
+            '$top' => 50,
+        ]);
+
+        return array_values(array_map(fn (array $message): array => [
+            'id' => (string) ($message['id'] ?? ''),
+            'internet_message_id' => trim((string) ($message['internetMessageId'] ?? ''), '<>'),
+            'from' => mb_strtolower((string) ($message['from']['emailAddress']['address'] ?? '')),
+            'subject' => (string) ($message['subject'] ?? ''),
+            'received_at' => (string) ($message['receivedDateTime'] ?? ''),
+            'preview' => mb_substr((string) ($message['bodyPreview'] ?? ''), 0, 300),
+        ], array_filter((array) $response->json('value', []), 'is_array')));
+    }
+
+    /**
      * Velden van het bericht voor Graph.
      *
      * @return array<string, mixed>

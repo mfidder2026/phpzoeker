@@ -2,6 +2,7 @@
 
 namespace App\Domain\Offers\Jobs;
 
+use App\Domain\Notifications\TeamsNotifier;
 use App\Domain\Offers\Models\Offer;
 use App\Domain\Offers\Notifications\ResponseOverdueNotification;
 use App\Domain\Offers\Support\Workdays;
@@ -36,6 +37,9 @@ class ResponseDueJob implements ShouldQueue
             if ($recipients->isNotEmpty()) {
                 Notification::send($recipients, new ResponseOverdueNotification($offer));
             }
+
+            $notification = new ResponseOverdueNotification($offer);
+            app(TeamsNotifier::class)->send($notification->title(), $notification->body(), $notification->url(), 'Opvolgmail maken');
 
             $offer->forceFill(['overdue_notified_at' => now()])->saveQuietly();
         }

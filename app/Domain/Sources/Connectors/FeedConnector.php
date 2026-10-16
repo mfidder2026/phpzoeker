@@ -77,6 +77,31 @@ class FeedConnector implements SourceConnector
 
         $postings = [];
 
+        // Vacature-XML in Indeed-formaat (<jobs><job>…</job></jobs>), bijv. DevITjobs.
+        if (isset($feed->job)) {
+            foreach ($feed->job as $job) {
+                $link = trim((string) ($job->url ?? '')) ?: trim((string) ($job->link ?? ''));
+                $place = collect([(string) ($job->city ?? ''), (string) ($job->region ?? '')])->map(fn (string $part): string => trim($part))->filter()->unique()->implode(', ');
+                $details = collect([
+                    'Bedrijf' => trim((string) ($job->company ?? '')),
+                    'Plaats' => $place,
+                    'Dienstverband' => trim((string) ($job->jobtype ?? '')),
+                    'Salaris' => trim((string) ($job->salary ?? '')),
+                ])->filter()->map(fn (string $value, string $label): string => '<p><strong>'.$label.':</strong> '.e($value).'</p>')->implode('');
+
+                $postings[] = $this->posting(
+                    externalId: trim((string) ($job->id ?? '')) ?: (trim((string) ($job['id'] ?? '')) ?: $link),
+                    url: $link ?: null,
+                    title: (string) ($job->title ?? $job->name ?? ''),
+                    html: $details.trim((string) ($job->description ?? '')),
+                    published: trim((string) ($job->pubdate ?? $job->date ?? '')),
+                    meta: ['kind' => 'feed_item'],
+                );
+            }
+
+            return $postings;
+        }
+
         if (isset($feed->channel)) {
             foreach ($feed->channel->item as $item) {
                 $content = $item->children('http://purl.org/rss/1.0/modules/content/');

@@ -35,6 +35,7 @@ use App\Domain\Sources\Models\Source;
 use App\Livewire\AiGauge;
 use App\Livewire\AiRunProgressPanel;
 use App\Livewire\MicrosoftLoginPanel;
+use App\Livewire\MicrosoftSignInPanel;
 use App\Models\User;
 use App\Policies\ActivityPolicy;
 use App\Policies\AiAgentProfilePolicy;
@@ -129,6 +130,7 @@ class AppServiceProvider extends ServiceProvider
         Livewire::component('ai-gauge', AiGauge::class);
         Livewire::component('ai-run-progress-panel', AiRunProgressPanel::class);
         Livewire::component('microsoft-login-panel', MicrosoftLoginPanel::class);
+        Livewire::component('microsoft-sign-in-panel', MicrosoftSignInPanel::class);
 
         if ($this->app->runningInConsole()) {
             // `composer run dev`: de worker moet ook de queues ai, documents en mail verwerken (§16.4).

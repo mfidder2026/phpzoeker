@@ -7,6 +7,7 @@ use Carbon\CarbonInterface;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\ViewEntry;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
@@ -24,6 +25,8 @@ class AssignmentInfolist
             Tabs::make('Opdracht')->columnSpanFull()->persistTabInQueryString()->tabs([
                 Tab::make('Samenvatting')->icon('heroicon-o-document-text')->schema([
                     ViewEntry::make('offers')->hiddenLabel()->columnSpanFull()->view('filament.assignments.offers'),
+                    Section::make('Voor wie en waar te reageren')->compact()->columnSpanFull()
+                        ->schema([ViewEntry::make('origin')->hiddenLabel()->view('filament.assignments.origin')]),
                     TextEntry::make('warnings')->hiddenLabel()->columnSpanFull()
                         ->state(fn (Assignment $record): array => array_values(array_filter([
                             ! $record->is_relevant ? 'Niet relevant: '.$record->relevance_reason : null,

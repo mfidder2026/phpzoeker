@@ -93,6 +93,10 @@ class SendOutboundEmail
             throw new InvalidArgumentException('Deze mail is nog niet goedgekeurd door een mens (R1).');
         }
 
+        if (array_filter($email->to ?? []) === []) {
+            throw new InvalidArgumentException('Deze mail heeft geen ontvanger in "Aan".');
+        }
+
         $offer = $email->offer;
 
         if ($offer === null) {
