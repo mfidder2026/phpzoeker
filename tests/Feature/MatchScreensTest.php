@@ -1,9 +1,12 @@
 <?php
 
+use App\Domain\Assignments\Models\AssignmentSource;
 use App\Domain\Geo\Geocoder;
 use App\Domain\Matching\Actions\MatchCandidate;
 use App\Domain\Matching\Enums\MatchStatus;
 use App\Domain\Matching\Models\CandidateMatch;
+use App\Domain\Sources\Enums\SourceType;
+use App\Domain\Sources\Models\Source;
 use App\Filament\Pages\Shortlist;
 use App\Filament\Resources\Matches\Pages\ListMatches;
 use App\Filament\Resources\Matches\Pages\ViewMatch;
@@ -40,6 +43,26 @@ it('lists matches and shows the detail with breakdown and requirements matrix', 
         ->assertSee('Harde filters');
 
     expect($match->refresh()->status)->toBe(MatchStatus::Bekeken);
+});
+
+it('shows on the match detail for whom the assignment is and that the contact email is missing', function () {
+    $match = strongMatch();
+    $match->assignment->forceFill(['intermediary_name' => 'Bemiddelaar BV'])->save();
+    $source = Source::query()->create(['key' => 'striive', 'name' => 'Striive', 'type' => SourceType::Html, 'enabled' => false]);
+    AssignmentSource::query()->create([
+        'assignment_id' => $match->assignment_id, 'source_id' => $source->id, 'url' => 'https://striive.test/opdracht/42',
+        'contact_name' => 'Petra Contact', 'first_seen_at' => now(), 'last_seen_at' => now(),
+    ]);
+
+    $this->actingAs(beheerder())
+        ->get('/matches/'.$match->id)
+        ->assertOk()
+        ->assertSee('Voor wie en waar te reageren')
+        ->assertSee('Gemeente Voorbeeldstad')
+        ->assertSee('Bemiddelaar BV')
+        ->assertSee('Petra Contact')
+        ->assertSee('geen e-mailadres bekend')
+        ->assertSee('Opdracht openen bij Striive');
 });
 
 it('shows the matches on the assignment detail and the best score in the list', function () {
