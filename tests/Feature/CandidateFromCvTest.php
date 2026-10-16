@@ -82,7 +82,7 @@ it('creates a candidate from an uploaded cv and fills in everything the cv conta
         ->and($candidate->driving_license)->toBeTrue()
         ->and($candidate->own_transport)->toBeNull()
         ->and($candidate->available_from)->toBeNull()
-        ->and($candidate->languages)->toBe(['nl' => 'moedertaal', 'en' => 'vloeiend'])
+        ->and($candidate->languages)->toEqual(['nl' => 'moedertaal', 'en' => 'vloeiend'])
         ->and($candidate->hours_per_week)->toBe(32)
         ->and((float) $candidate->hourly_rate)->toBe(0.0)
         ->and($candidate->email)->toBe('alex@example.com')
