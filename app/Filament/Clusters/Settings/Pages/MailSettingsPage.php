@@ -51,7 +51,7 @@ class MailSettingsPage extends BaseSettingsPage
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        return Arr::except($data, self::CONNECTION_FIELDS);
+        return parent::mutateFormDataBeforeSave(Arr::except($data, self::CONNECTION_FIELDS));
     }
 
     #[On('microsoft-connected')]
