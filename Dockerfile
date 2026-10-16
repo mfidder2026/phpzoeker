@@ -3,7 +3,7 @@ FROM php:8.4-cli
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends git unzip libicu-dev libzip-dev libpng-dev libpq-dev libxml2-dev \
-    && docker-php-ext-install intl zip gd pdo_pgsql pgsql bcmath exif sockets pcntl opcache \
+    && docker-php-ext-install intl zip gd pdo_pgsql pgsql bcmath calendar exif sockets pcntl opcache \
     && pecl install redis && docker-php-ext-enable redis \
     && rm -rf /var/lib/apt/lists/* \
     && printf "memory_limit=512M\nupload_max_filesize=25M\npost_max_size=30M\nopcache.enable_cli=1\nopcache.validate_timestamps=0\n" > /usr/local/etc/php/conf.d/phpzoeker.ini
