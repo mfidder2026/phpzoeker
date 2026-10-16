@@ -4,6 +4,7 @@ namespace App\Domain\Assignments\Models;
 
 use App\Domain\Relations\Models\Contact;
 use App\Domain\Relations\Models\Organization;
+use App\Domain\Sources\Enums\SourceType;
 use App\Domain\Sources\Models\RawPosting;
 use App\Domain\Sources\Models\Source;
 use Illuminate\Database\Eloquent\Model;
@@ -80,5 +81,32 @@ class AssignmentSource extends Model
     public function contact(): BelongsTo
     {
         return $this->belongsTo(Contact::class);
+    }
+
+    /**
+     * Waar de opdracht echt staat: bij een job alert uit de aanvragen-mailbox het platform dat de
+     * alert stuurde (bijv. Freelance.nl), anders de bron zelf.
+     */
+    public function platformName(): string
+    {
+        $senderDomain = $this->rawPosting?->meta['sender_domain'] ?? null;
+
+        if ($this->source->type !== SourceType::MailboxAlert || ! is_string($senderDomain) || $senderDomain === '') {
+            return $this->intermediary_name ?? $this->source->name;
+        }
+
+        $alert = Source::query()->where('type', SourceType::Alert->value)->get()
+            ->first(fn (Source $source): bool => collect((array) $source->configValue('sender_domains', []))
+                ->contains(fn (mixed $domain): bool => is_string($domain) && ($senderDomain === $domain || str_ends_with($senderDomain, '.'.$domain))));
+
+        return $alert->name ?? $senderDomain;
+    }
+
+    /**
+     * Kwam de opdracht binnen als alert-mail (alleen een samenvatting, zonder opdrachtgever en contact)?
+     */
+    public function isAlertMail(): bool
+    {
+        return ($this->rawPosting?->meta['kind'] ?? null) === 'alert_item' || ($this->rawPosting?->meta['kind'] ?? null) === 'alert_mail';
     }
 }

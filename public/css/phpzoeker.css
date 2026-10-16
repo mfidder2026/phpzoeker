@@ -261,3 +261,4 @@ html:not(.dark) .fi-main-ctn {
 .pz-search-pill__dot { width: 0.6rem; height: 0.6rem; border-radius: 99px; background: var(--pz-primary); animation: pz-pulse 1.2s ease-in-out infinite; flex: none; }
 .pz-search-pill__dot--done { background: var(--pz-success); animation: none; }
 @keyframes pz-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+.pz-origin .pz-alert { margin-top: 0.5rem; }

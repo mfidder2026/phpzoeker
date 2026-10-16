@@ -210,8 +210,10 @@ final class MatchActions
             ->visible(fn (): bool => Access::isStaff())
             ->disabled(fn (CandidateMatch $record): bool => ! $record->hard_filter_passed || $record->candidate->active_profile_id === null)
             ->tooltip(fn (CandidateMatch $record): ?string => ! $record->hard_filter_passed ? 'Een harde filter is niet gehaald.' : ($record->candidate->active_profile_id === null ? 'Geen goedgekeurd master-profiel.' : null))
-            ->requiresConfirmation(fn (CandidateMatch $record): bool => $record->isKnockoutBlocking() || $record->recommendation === Recommendation::NietAanbieden)
-            ->modalDescription('Het advies is "niet aanbieden" of een knock-out-eis is niet gehaald. Weet je zeker dat je toch wilt aanbieden?')
+            ->requiresConfirmation()
+            ->modalHidden(fn (CandidateMatch $record): bool => self::offerWarning($record) === null)
+            ->modalHeading('Toch aanbieden?')
+            ->modalDescription(fn (CandidateMatch $record): ?string => self::offerWarning($record))
             ->action(function (CandidateMatch $record): void {
                 try {
                     $offer = app(CreateOffer::class)->handle($record->assignment, $record->candidate, Access::user(), $record);
@@ -229,6 +231,18 @@ final class MatchActions
 
                 redirect(OfferResource::getUrl('wizard', ['record' => $offer]));
             });
+    }
+
+    /**
+     * Waarschuwing voor "Aanbieden": alleen bij een niet-gehaalde knock-out-eis of het advies "niet aanbieden".
+     */
+    public static function offerWarning(CandidateMatch $match): ?string
+    {
+        return match (true) {
+            $match->isKnockoutBlocking() => 'Een knock-out-eis is niet gehaald. Weet je zeker dat je '.$match->candidate->name.' toch wilt aanbieden?',
+            $match->recommendation === Recommendation::NietAanbieden => 'Het advies van de beoordeling is "niet aanbieden". Weet je zeker dat je '.$match->candidate->name.' toch wilt aanbieden?',
+            default => null,
+        };
     }
 
     public static function toShortlist(CandidateMatch $match): void

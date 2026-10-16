@@ -113,6 +113,10 @@ class OfferWorkflow
 
         $offer = $email->offer ?? throw new InvalidArgumentException('Deze mail hoort niet bij een aanbieding.');
 
+        if (array_filter($email->to ?? []) === []) {
+            throw new InvalidArgumentException('Vul eerst een ontvanger in bij "Aan" (Mail bewerken). Zonder ontvanger gaat de aanbieding nergens heen.');
+        }
+
         DB::transaction(function () use ($email, $user, $offer): void {
             $email->forceFill(['status' => OutboundEmailStatus::Goedgekeurd, 'approved_by' => $user->id, 'approved_at' => now()])->save();
 

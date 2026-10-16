@@ -1,7 +1,9 @@
 <?php
 
+use App\Domain\Assignments\Models\AssignmentSource;
 use App\Domain\Matching\Actions\MatchCandidate;
 use App\Domain\Matching\Enums\MatchStatus;
+use App\Domain\Matching\Enums\Recommendation;
 use App\Domain\Offers\Actions\CreateOffer;
 use App\Domain\Offers\Actions\OfferWorkflow;
 use App\Domain\Offers\Actions\RequestConsent;
@@ -13,7 +15,13 @@ use App\Domain\Offers\Enums\OutboundEmailStatus;
 use App\Domain\Offers\Exceptions\DuplicateOfferException;
 use App\Domain\Offers\Models\Offer;
 use App\Domain\Offers\Models\OfferSnapshot;
+use App\Domain\Sources\Enums\RawPostingStatus;
+use App\Domain\Sources\Enums\SourceType;
+use App\Domain\Sources\Models\RawPosting;
+use App\Domain\Sources\Models\Source;
 use App\Enums\Role;
+use App\Filament\Resources\Assignments\Pages\ViewAssignment;
+use App\Filament\Resources\Matches\MatchActions;
 use App\Filament\Resources\Matches\Pages\ViewMatch;
 use App\Filament\Resources\Offers\OfferResource;
 use Illuminate\Http\Client\Request;
@@ -248,4 +256,52 @@ it('starts an offer from the match and refuses a duplicate with a link', functio
 
     expect(Offer::query()->count())->toBe(1)
         ->and($match->refresh()->status)->toBe(MatchStatus::Shortlist);
+});
+
+it('only asks "weet je het zeker" when a knock-out fails or the advice is not to offer', function () {
+    $user = beheerder();
+    Http::fake(['ollama.test/*' => Http::response(ollamaReply(assessmentJson()))]);
+    $match = app(MatchCandidate::class)->handle(offerAssignment(), offerCandidate());
+
+    expect(MatchActions::offerWarning($match))->toBeNull();
+
+    $this->actingAs($user);
+    Livewire\Livewire::test(ViewMatch::class, ['record' => $match->id])
+        ->mountAction('offer')
+        ->assertRedirect(OfferResource::getUrl('wizard', ['record' => Offer::query()->sole()]));
+
+    $match->forceFill(['recommendation' => Recommendation::NietAanbieden])->save();
+    expect(MatchActions::offerWarning($match))->toContain('niet aanbieden');
+});
+
+it('refuses to approve or send an offer mail without a recipient', function () {
+    withoutConsent();
+    $user = beheerder();
+    $offer = preparedOffer($user);
+    $email = $offer->offerEmail();
+
+    $email->forceFill(['to' => [], 'status' => OutboundEmailStatus::Goedgekeurd])->save();
+    expect(fn () => app(SendOutboundEmail::class)->handle($email, $user))->toThrow(InvalidArgumentException::class, 'geen ontvanger');
+
+    $email->forceFill(['status' => OutboundEmailStatus::Concept, 'approved_by' => null])->save();
+    expect(fn () => app(OfferWorkflow::class)->approveMail($email->refresh(), $user))->toThrow(InvalidArgumentException::class, 'Vul eerst een ontvanger in');
+    expect(sentMails())->toBe([]);
+});
+
+it('shows for whom an assignment from a job alert is and where to open it', function () {
+    $this->actingAs(beheerder());
+    $assignment = openAssignment(['title' => 'Front-end React Developer']);
+    $mailbox = Source::query()->create(['key' => 'alerts-mailbox', 'name' => 'Aanvragen-mailbox', 'type' => SourceType::MailboxAlert, 'enabled' => false]);
+    Source::query()->create(['key' => 'freelance-nl', 'name' => 'Freelance.nl', 'type' => SourceType::Alert, 'enabled' => true, 'config' => ['sender_domains' => ['freelance.nl']]]);
+    $posting = RawPosting::query()->create([
+        'source_id' => $mailbox->id, 'external_id' => 'alert-1', 'url' => 'https://www.freelance.nl/opdracht/123', 'title' => 'Front-end React Developer',
+        'body_text' => 'Samenvatting', 'content_hash' => 'x', 'received_at' => now(), 'status' => RawPostingStatus::Processed,
+        'meta' => ['kind' => 'alert_item', 'sender_domain' => 'freelance.nl'],
+    ]);
+    AssignmentSource::query()->create(['assignment_id' => $assignment->id, 'source_id' => $mailbox->id, 'raw_posting_id' => $posting->id, 'url' => $posting->url, 'first_seen_at' => now(), 'last_seen_at' => now()]);
+
+    Livewire\Livewire::test(ViewAssignment::class, ['record' => $assignment->id])
+        ->assertSee('Voor wie en waar te reageren')
+        ->assertSee('Opdracht openen bij Freelance.nl')
+        ->assertSee('de opdrachtgever en de contactpersoon staan er niet in');
 });

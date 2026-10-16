@@ -167,7 +167,8 @@ class OfferWizard extends Page
             ->label(fn (): string => $this->record->latestCv === null ? 'CV herschrijven' : 'Opnieuw genereren')
             ->icon(Heroicon::OutlinedSparkles)
             ->visible(fn (): bool => Access::isStaff() && in_array($this->record->status, [OfferStatus::Concept, OfferStatus::CvInReview], true))
-            ->requiresConfirmation(fn (): bool => $this->record->latestCv !== null)
+            ->requiresConfirmation()
+            ->modalHidden(fn (): bool => $this->record->latestCv === null)
             ->modalDescription('Maakt een nieuwe versie van het CV op basis van het master-profiel. Dit kost een AI-aanroep.')
             ->action(function (): void {
                 if ($this->record->candidate->activeProfile === null) {
@@ -265,7 +266,8 @@ class OfferWizard extends Page
             ->label(fn (): string => $this->record->offerEmail() === null ? ($this->record->channel === OfferChannel::Platform ? 'Indieningspakket maken' : 'Mailtekst maken') : 'Opnieuw maken')
             ->icon(Heroicon::OutlinedEnvelope)
             ->visible(fn (): bool => Access::isStaff() && ($this->record->latestCv?->isApproved() ?? false) && in_array($this->record->status, [OfferStatus::CvInReview, OfferStatus::MailInReview], true))
-            ->requiresConfirmation(fn (): bool => $this->record->offerEmail() !== null)
+            ->requiresConfirmation()
+            ->modalHidden(fn (): bool => $this->record->offerEmail() === null)
             ->modalDescription('Maakt een nieuw concept; het huidige concept wordt vervangen.')
             ->action(function (): void {
                 $run = PrepareOfferMail::queueRun($this->record, Access::user());
