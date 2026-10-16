@@ -123,7 +123,7 @@ class CandidateMatch extends Model
      */
     public function candidate(): BelongsTo
     {
-        return $this->belongsTo(Candidate::class);
+        return $this->belongsTo(Candidate::class)->withTrashed();
     }
 
     /**

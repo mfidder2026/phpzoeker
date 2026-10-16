@@ -48,7 +48,8 @@ class CandidateResource extends Resource
     }
 
     /**
-     * Een kandidaat ziet alleen zijn eigen kandidaatpagina (§15.2).
+     * Een kandidaat ziet alleen zijn eigen kandidaatpagina (§15.2). Verwijderde kandidaten zijn
+     * alleen voor de beheerder zichtbaar (filter "Verwijderd") om ze terug te zetten.
      */
     public static function getEloquentQuery(): Builder
     {
@@ -56,7 +57,7 @@ class CandidateResource extends Resource
 
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([SoftDeletingScope::class])
-            ->whereNull('deleted_at')
+            ->when(! Access::isBeheerder(), fn (Builder $query) => $query->whereNull('deleted_at'))
             ->when($user?->isKandidaat(), fn (Builder $query) => $query->whereKey($user->candidate_id ?? 0));
     }
 

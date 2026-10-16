@@ -11,6 +11,8 @@ use App\Domain\Candidates\Models\Candidate;
 use App\Filament\Resources\Candidates\CandidateResource;
 use App\Filament\Support\Access;
 use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\RestoreAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Support\Icons\Heroicon;
@@ -37,6 +39,9 @@ class EditCandidate extends EditRecord
     {
         return [
             $this->importCvAction(),
+            DeleteAction::make()
+                ->modalDescription('De kandidaat verdwijnt uit de lijst en wordt niet meer gematcht; matches zonder aanbieding worden verwijderd. Aanbiedingen blijven in het register. Terugzetten kan via het filter "Verwijderd".'),
+            RestoreAction::make(),
         ];
     }
 

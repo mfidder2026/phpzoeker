@@ -4,9 +4,14 @@ namespace App\Filament\Resources\Candidates\Tables;
 
 use App\Domain\Candidates\Enums\CandidateStatus;
 use App\Domain\Candidates\Models\Candidate;
+use App\Filament\Support\Access;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
 class CandidatesTable
@@ -28,9 +33,18 @@ class CandidatesTable
             ])
             ->filters([
                 SelectFilter::make('status')->label('Status')->options(CandidateStatus::class),
+                TrashedFilter::make()->label('Verwijderd')
+                    ->placeholder('Zonder verwijderde')->trueLabel('Met verwijderde')->falseLabel('Alleen verwijderde')
+                    ->visible(fn (): bool => Access::isBeheerder()),
             ])
             ->recordActions([
                 EditAction::make(),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
+                ]),
             ]);
     }
 }

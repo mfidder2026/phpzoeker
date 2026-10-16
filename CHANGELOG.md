@@ -3,6 +3,7 @@
 ## [Fase 5 — rapportage en verbeteren] — 15-10-2026
 
 ### Toegevoegd
+- **Verwijderknoppen** (16-10-2026): kandidaten verwijderen en terugzetten (beheerder; ook als bulkactie, filter "Verwijderd"; matches zonder aanbieding vervallen, aanbiedingen blijven in het register), bronnen zonder opgehaalde publicaties, contactpersonen van een relatie, en niet-actieve AI-profielen.
 - **Inloggen met Microsoft** op de inlogpagina; bij een beheerder koppelt dezelfde inlog ook verzenden via Microsoft 365 en de aanvragen-mailbox.
 - **Alleen inloggen met Microsoft**, alleen voor michel@, mark@ en sten@fremen.app (allemaal beheerder); wachtwoordlogin, wachtwoordreset en eigen 2FA zijn uit.
 - **Bronnencatalogus (§8.2) in de app**: alle 33 alert-bronnen (type *Job alert → aanvragen-mailbox*, met waar je de alert instelt), drie nieuwe openbare opdrachtfeeds (Quest4, Morgan Black, B-Hunted; robots.txt gecontroleerd, aan na de ToS-check) en TenderNed/Adzuna (connector nog te bouwen). Knop **Nu zoeken** op het dashboard en bij Bronnen haalt alle actieve bronnen direct op, met een voortgangsvenster (per bron, AI-lezen, matchen, resterende tijd) dat naar een balkje rechtsonder kan.
