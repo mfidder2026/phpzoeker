@@ -14,6 +14,7 @@ use App\Filament\Pages\Dashboard;
 use App\Filament\Resources\Sources\Pages\ListSources;
 use App\Livewire\SourceSearchPanel;
 use Database\Seeders\SourceSeeder;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
 
@@ -144,4 +145,15 @@ it('opens the progress panel when a search starts', function () {
         ->assertSee('Quest4 — opdrachten — wacht')
         ->call('minimize')
         ->assertSee('Zoeken 0%');
+});
+
+it('only fetches sources on a schedule when automatic fetching is switched on', function () {
+    $event = collect(app(Schedule::class)->events())
+        ->first(fn ($event): bool => $event->description === 'bronnen-ophalen');
+
+    config(['phpzoeker.sources_auto_fetch' => false]);
+    expect($event->filtersPass(app()))->toBeFalse();
+
+    config(['phpzoeker.sources_auto_fetch' => true]);
+    expect($event->filtersPass(app()))->toBeTrue();
 });

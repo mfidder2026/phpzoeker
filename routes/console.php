@@ -33,7 +33,8 @@ try {
     $digestTime = '08:00';
 }
 
-Schedule::job(new DispatchDueSourcesJob)->everyMinute()->name('bronnen-ophalen')->withoutOverlapping();
+Schedule::job(new DispatchDueSourcesJob)->everyMinute()->name('bronnen-ophalen')->withoutOverlapping()
+    ->when(fn (): bool => (bool) config('phpzoeker.sources_auto_fetch'));
 Schedule::job(new CloseExpiredAssignmentsJob)->hourly()->name('opdrachten-sluiten');
 Schedule::job(new SourceHealthCheckJob)->dailyAt('07:00')->timezone($timezone)->name('bronnen-gezondheid');
 Schedule::job(new RematchAllJob)->dailyAt('02:00')->timezone($timezone)->name('matches-herberekenen');
